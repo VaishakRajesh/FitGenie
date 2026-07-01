@@ -232,7 +232,6 @@ Scroll to **Environment Variables** and add:
 
 Add a `render-init.sh` script to your repo to initialize directories on deploy:
 
-```bash
 #!/bin/bash
 # render-init.sh - Run before starting the app
 

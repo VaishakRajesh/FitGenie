@@ -5,7 +5,7 @@ set -o errexit
 # Prevent tiktoken from trying to build Rust extension
 export TIKTOKEN_ENABLE_EXTENSION=0
 
-pip install --upgrade pip
+pip install --upgrade pip wheel setuptools
 pip install -r requirements.txt
 
 # Download sentence-transformers model cache at build time
