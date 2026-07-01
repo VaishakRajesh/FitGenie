@@ -194,9 +194,11 @@ Render free web services include **1 GB of persistent disk storage**. You must m
 | **Region** | Choose the closest to you |
 | **Branch** | `main` |
 | **Runtime** | `Python 3` |
-| **Build Command** | `pip install -r requirements.txt` |
+| **Build Command** | `chmod +x render-build.sh && ./render-build.sh` |
 | **Start Command** | `gunicorn app:app` |
 | **Plan Type** | **Free** |
+
+> **tiktoken fix (critical):** The `tiktoken` package requires Rust/Cargo, which fails on Render's read-only filesystem. The `render-build.sh` script sets `TIKTOKEN_ENABLE_EXTENSION=0` to use the pure-Python fallback instead. If you skip the build script, add `TIKTOKEN_ENABLE_EXTENSION=0` as an environment variable.
 
 > **Important:** For the free plan, the service spins down after 15 minutes of inactivity and spins up on the next request (cold start). This takes 30–60 seconds.
 
@@ -210,6 +212,7 @@ Scroll to **Environment Variables** and add:
 | `SECRET_KEY` | Generate with: `python -c "import secrets; print(secrets.token_hex(32))"` |
 | `DATABASE_URL` | `sqlite:////var/data/instance/database.db` |
 | `PYTHON_VERSION` | `3.11.7` |
+| `TIKTOKEN_ENABLE_EXTENSION` | `0` |
 
 #### 5. Mount persistent disk for SQLite, vectorstore, and documents
 
