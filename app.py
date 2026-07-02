@@ -1,6 +1,6 @@
 """
 FitGenie AI - AI-Powered Fitness Assistant
-Flask + LangChain + RAG + ChromaDB + OpenAI
+Flask + LangChain + RAG + ChromaDB + Groq
 """
 
 # ============================================================
@@ -24,14 +24,45 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
 # LangChain imports
-from langchain_openai import ChatOpenAI
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferMemory
-from langchain.prompts import PromptTemplate
+#
+# IMPORTANT: we deliberately avoid importing from the umbrella `langchain`
+# package (e.g. `langchain.chains`, `langchain.memory`). That package's
+# __init__ chain pulls in a lot of legacy/deprecated modules (APIChain,
+# TextRequestsWrapper, etc.) that this app doesn't even use, and those are
+# what keep breaking with `ModuleNotFoundError: langchain_core.pydantic_v1`
+# whenever langchain-core/langchain-community/langchain drift out of sync.
+# Sticking to the narrow, actively-maintained packages below avoids that
+# whole class of version-skew crash.
+from langchain_groq import ChatGroq
+from langchain_core.prompts import PromptTemplate
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# The imports below (RAG-related: embeddings, vector store, document loaders)
+# pull in langchain_community, which has a history of version-skew crashes
+# against langchain_core (e.g. ModuleNotFoundError: langchain_core.pydantic_v1).
+# RAG is an OPTIONAL feature in this app (there's already a rule-based and
+# LLM-only fallback), so we don't want a broken/incompatible optional
+# dependency to prevent the whole Flask app from starting. Wrap each in its
+# own try/except and fall back to None; the functions that use them already
+# check for availability before use.
+try:
+    from langchain_community.embeddings import HuggingFaceEmbeddings
+except Exception as e:
+    print(f"⚠️  HuggingFaceEmbeddings unavailable ({e}) — will try ONNX fallback")
+    HuggingFaceEmbeddings = None
+
+try:
+    from langchain_community.vectorstores import Chroma
+except Exception as e:
+    print(f"⚠️  Chroma vector store unavailable ({e}) — RAG will be disabled")
+    Chroma = None
+
+try:
+    from langchain_community.document_loaders import PyPDFLoader, TextLoader
+except Exception as e:
+    print(f"⚠️  Document loaders unavailable ({e}) — RAG will be disabled")
+    PyPDFLoader = None
+    TextLoader = None
 
 # Suppress warnings
 warnings.filterwarnings("ignore")
@@ -62,6 +93,28 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"  # Redirect to login page if not authenticated
+
+
+# --- FIX #1 ------------------------------------------------------------
+# By default, when @login_required rejects a request, Flask-Login
+# REDIRECTS to /login and returns an HTML page (302 -> 200 HTML).
+# Your JS chat widget does `fetch('/chat', ...).then(r => r.json())`.
+# If the session cookie is missing/expired, the fetch silently receives
+# an HTML login page instead of JSON, `r.json()` throws a SyntaxError,
+# and your catch block reports it as a generic "network error" even
+# though the server is perfectly reachable.
+#
+# This handler makes any request that "looks like" an API/AJAX call
+# get a clean 401 JSON response instead of an HTML redirect, so the
+# frontend can detect "you're logged out" instead of choking on HTML.
+@login_manager.unauthorized_handler
+def unauthorized():
+    if request.path.startswith(("/chat", "/save-profile", "/calculate-bmi",
+                                 "/get-history", "/clear-history", "/upload-document")) \
+            or request.is_json or request.accept_mimetypes.best == "application/json":
+        return jsonify({"success": False, "message": "Session expired, please log in again."}), 401
+    return redirect(url_for("login"))
+# -------------------------------------------------------------------------
 
 
 # ============================================================
@@ -131,29 +184,71 @@ def load_user(user_id):
 
 def get_llm():
     """
-    Initialize and return the OpenAI GPT model via LangChain.
-    Falls back to a mock/offline mode if no API key is set.
+    Initialize and return the Groq-hosted LLM via LangChain.
+    Falls back to None if no valid API key is set (offline mode).
+
+    Groq's free tier requires no billing setup, so this avoids the
+    OpenAI "works once then 429 quota exceeded" problem entirely.
+    Get a free key at https://console.groq.com/keys
     """
-    api_key = os.getenv("OPENAI_API_KEY")
-    if api_key and api_key != "your-openai-api-key-here":
-        return ChatOpenAI(
-            model="gpt-3.5-turbo",
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        print("⚠️  GROQ_API_KEY not found in environment")
+        return None
+    api_key = api_key.strip()
+    if not api_key or "your-groq-api-key" in api_key:
+        print("⚠️  GROQ_API_KEY is placeholder or empty")
+        return None
+    try:
+        return ChatGroq(
+            model="llama-3.3-70b-versatile",
             temperature=0.7,
-            openai_api_key=api_key
+            groq_api_key=api_key
         )
-    # Return None if no valid API key (offline mode)
-    return None
+    except Exception as e:
+        print(f"❌ Failed to initialize Groq LLM: {e}")
+        return None
 
 
 def get_embeddings():
     """
-    Initialize HuggingFace embeddings for document vectorization.
-    Uses all-MiniLM-L6-v2 model for efficient sentence embeddings.
+    Initialize embeddings for document vectorization.
+
+    Tries multiple backends in order:
+    1. HuggingFace embeddings (requires sentence-transformers + torch)
+    2. ChromaDB built-in ONNX embedding (lightweight, no extra deps)
+    3. Returns None if neither is available (RAG disabled)
     """
-    return HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2",
-        model_kwargs={"device": "cpu"}
-    )
+    # Try HuggingFace embeddings first (best quality)
+    if HuggingFaceEmbeddings is not None:
+        try:
+            import sentence_transformers
+            return HuggingFaceEmbeddings(
+                model_name="sentence-transformers/all-MiniLM-L6-v2",
+                model_kwargs={"device": "cpu"}
+            )
+        except ImportError:
+            print("⚠️  sentence-transformers not available, trying ONNX fallback...")
+        except Exception as e:
+            print(f"⚠️  HuggingFace embeddings failed: {e}")
+
+    # Fallback: use ChromaDB's built-in ONNX embedding (no extra deps)
+    try:
+        from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
+        onnx_ef = ONNXMiniLM_L6_V2(preferred_providers=["CPUExecutionProvider"])
+        # Wrap it as a LangChain-compatible Embeddings class
+        from langchain_core.embeddings import Embeddings
+        class ONNXEmbeddings(Embeddings):
+            def embed_documents(self, texts):
+                return onnx_ef(texts)
+            def embed_query(self, text):
+                return onnx_ef([text])[0]
+        print("✅ Using ChromaDB ONNX embeddings (lightweight)")
+        return ONNXEmbeddings()
+    except Exception as e:
+        print(f"⚠️  ONNX embeddings also failed: {e}")
+
+    return None
 
 
 def load_and_split_documents():
@@ -169,6 +264,11 @@ def load_and_split_documents():
 
     # Skip if directory doesn't exist
     if not os.path.exists(documents_dir):
+        return []
+
+    # Skip if loaders failed to import (version-skew issue in langchain_community)
+    if PyPDFLoader is None or TextLoader is None:
+        print("⚠️  Document loaders unavailable — skipping document loading")
         return []
 
     # Load all PDF and text files from the documents folder
@@ -205,14 +305,23 @@ def load_and_split_documents():
 def create_vector_store():
     """
     Create or load ChromaDB vector store from documents.
-    
+
     The vector store persists on disk in the 'vectorstore/' directory
     so it doesn't need to be rebuilt every time the app starts.
     """
     import shutil
     persist_directory = "vectorstore"
+
+    if Chroma is None:
+        print("⚠️  Chroma unavailable — RAG disabled")
+        return None
+
     embeddings = get_embeddings()
-    
+
+    if not embeddings:
+        print("⚠️  No embeddings available — RAG disabled")
+        return None
+
     # If vectorstore already exists, load it from disk
     if os.path.exists(persist_directory) and os.listdir(persist_directory):
         try:
@@ -222,42 +331,25 @@ def create_vector_store():
             )
         except Exception as e:
             print(f"Error loading vectorstore: {e}, rebuilding...")
-            # If loading fails, remove and rebuild
             shutil.rmtree(persist_directory, ignore_errors=True)
-    
+
     # Otherwise, create it from documents
     chunks = load_and_split_documents()
     if not chunks:
+        print("⚠️  No documents to index — RAG disabled")
         return None
-    
+
     vector_store = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
         persist_directory=persist_directory
     )
+    print(f"✅ Vector store created with {len(chunks)} chunks from {len(os.listdir('documents'))} document(s)")
     return vector_store
 
 
-def create_retrieval_qa():
-    """
-    Build the complete RAG chain with conversation memory using LangChain.
-    
-    Components:
-    1. Vector store retriever (finds relevant document chunks)
-    2. Custom prompt template for fitness-specific responses
-    3. Conversation buffer memory for context retention
-    4. OpenAI LLM for generating final answers
-    """
-    llm = get_llm()
-    vector_store = create_vector_store()
-    
-    # If no LLM or vector store, return None (fallback mode)
-    if not llm or not vector_store:
-        return None
-    
-    # Custom prompt template tailored for fitness advice
-    # Note: ConversationalRetrievalChain uses "context" and "question" as input variables
-    prompt_template = """
+RAG_PROMPT = PromptTemplate(
+    template="""
     You are FitGenie AI, an expert fitness and nutrition assistant.
 
     INSTRUCTIONS:
@@ -268,51 +360,106 @@ def create_retrieval_qa():
     - Never recommend dangerous or extreme practices.
     - If the user mentions a medical condition, advise consulting a doctor.
 
+    RECENT CONVERSATION:
+    {chat_history}
+
     CONTEXT:
     {context}
 
     USER QUESTION:
     {question}
 
-    YOUR RESPONSE:"""
+    YOUR RESPONSE:""",
+    input_variables=["chat_history", "context", "question"]
+)
 
-    prompt = PromptTemplate(
-        template=prompt_template,
-        input_variables=["context", "question"]
+LLM_ONLY_PROMPT = PromptTemplate(
+    template="""
+    You are FitGenie AI, an expert fitness and nutrition assistant.
+
+    INSTRUCTIONS:
+    - Use your general fitness knowledge to answer questions.
+    - Always give safe, science-based advice.
+    - Keep responses concise and actionable (max 3-4 sentences).
+    - Never recommend dangerous or extreme practices.
+    - If the user mentions a medical condition, advise consulting a doctor.
+    - Remember what the user told you in previous messages.
+
+    CONVERSATION HISTORY:
+    {chat_history}
+
+    USER QUESTION:
+    {input}
+
+    YOUR RESPONSE:""",
+    input_variables=["chat_history", "input"]
+)
+
+
+# Global variable for the vector store (initialized on first use)
+_vector_store = None
+_vector_store_initialized = False
+
+
+def get_vector_store():
+    """Lazy singleton for the Chroma vector store (None if RAG is unavailable)."""
+    global _vector_store, _vector_store_initialized
+    if not _vector_store_initialized:
+        _vector_store = create_vector_store()
+        _vector_store_initialized = True
+    return _vector_store
+
+
+def generate_rag_answer(question, chat_history_text=""):
+    """
+    Tier 1: retrieve relevant document chunks and ask the LLM using them
+    as context. Returns the answer string, or None if RAG isn't available
+    or the call fails (caller should fall back to the next tier).
+
+    This intentionally does NOT use ConversationalRetrievalChain — that
+    chain (and LLMChain, ConversationBufferMemory) live in the legacy
+    `langchain` umbrella package, which pulls in modules this app doesn't
+    need and has repeatedly broken on langchain-core version mismatches.
+    A direct retrieve -> format prompt -> llm.invoke() call needs only
+    langchain_core + langchain_groq + (optionally) langchain_community's
+    vector store, and is just as effective for this use case.
+    """
+    llm = get_llm()
+    vector_store = get_vector_store()
+
+    if not llm or not vector_store:
+        return None
+
+    docs = vector_store.similarity_search(question, k=3)
+    if not docs:
+        return None
+
+    context = "\n\n".join(doc.page_content for doc in docs)
+    prompt_text = RAG_PROMPT.format(
+        chat_history=chat_history_text or "(no prior conversation)",
+        context=context,
+        question=question
     )
-    
-    # Conversation memory to remember previous interactions
-    memory = ConversationBufferMemory(
-        memory_key="chat_history",
-        output_key="answer",
-        return_messages=True
+    response = llm.invoke(prompt_text)
+    return (getattr(response, "content", None) or str(response)).strip()
+
+
+def generate_llm_only_answer(question, chat_history_text=""):
+    """
+    Tier 2: plain LLM call with no document retrieval, used when RAG is
+    unavailable or returned nothing. See generate_rag_answer() for why
+    this avoids LLMChain/ConversationBufferMemory.
+    """
+    llm = get_llm()
+    if not llm:
+        return None
+
+    prompt_text = LLM_ONLY_PROMPT.format(
+        chat_history=chat_history_text or "(no prior conversation)",
+        input=question
     )
-    
-    # Build the Conversational Retrieval Chain with memory
-    qa_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=vector_store.as_retriever(
-            search_kwargs={"k": 3}  # Retrieve top 3 relevant chunks
-        ),
-        memory=memory,
-        combine_docs_chain_kwargs={"prompt": prompt},
-        return_source_documents=False,
-        verbose=False
-    )
-    
-    return qa_chain
-
-
-# Global variable for the QA chain (initialized on first use)
-qa_chain = None
-
-
-def get_qa_chain():
-    """Lazy initialization of the QA chain (singleton pattern)."""
-    global qa_chain
-    if qa_chain is None:
-        qa_chain = create_retrieval_qa()
-    return qa_chain
+    response = llm.invoke(prompt_text)
+    return (getattr(response, "content", None) or str(response)).strip()
 
 
 def get_fallback_response(question):
@@ -576,8 +723,12 @@ def save_profile():
     if not profile:
         return jsonify({"success": False, "message": "Profile not found"}), 404
 
-    # Update fields from JSON request
-    data = request.get_json()
+    # FIX #2: silent=True so a missing/incorrect Content-Type header
+    # (very common from plain `fetch(url, {method:'POST', body: JSON.stringify(...)})`
+    # calls that forget `headers: {'Content-Type': 'application/json'}`)
+    # returns None instead of raising a 400/415 error that produced an
+    # HTML error page the frontend couldn't parse as JSON.
+    data = request.get_json(silent=True) or {}
     if data:
         profile.age = data.get("age", profile.age)
         profile.height = data.get("height", profile.height)
@@ -608,7 +759,7 @@ def calculate_bmi():
     BMI Calculator API Endpoint
     Accepts weight (kg) and height (cm), returns BMI and health advice.
     """
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}  # FIX #2 (see save_profile)
 
     weight = data.get("weight")
     height = data.get("height")
@@ -680,66 +831,104 @@ def chat():
     Accepts user question, generates response using RAG pipeline or fallback.
     Saves conversation to chat history.
     """
-    data = request.get_json()
-    question = data.get("question", "").strip()
+    # FIX #2: silent=True avoids a raw 400/415 (HTML) response when the
+    # request body is missing or the Content-Type header isn't set to
+    # application/json — this alone was very likely the "network error"
+    # your JS was reporting, since `res.json()` on an HTML body throws.
+    data = request.get_json(silent=True) or {}
+    question = (data.get("question") or "").strip()
 
     if not question:
         return jsonify({"success": False, "message": "Question is required"}), 400
 
-    # Build context from user profile for personalized responses
-    profile = Profile.query.filter_by(user_id=current_user.id).first()
-    user_context = ""
-    if profile:
-        details = []
-        if profile.age:
-            details.append(f"Age: {profile.age}")
-        if profile.gender:
-            details.append(f"Gender: {profile.gender}")
-        if profile.goal:
-            details.append(f"Goal: {profile.goal}")
-        if profile.fitness_level:
-            details.append(f"Fitness Level: {profile.fitness_level}")
-        if profile.medical_condition:
-            details.append(f"Medical Condition: {profile.medical_condition}")
-        if profile.weight and profile.height:
-            details.append(f"BMI: {round(profile.weight / ((profile.height / 100) ** 2), 1)}")
-        if details:
-            user_context = f"User Info: {' | '.join(details)}"
-
-    # Try to use RAG pipeline, fall back to rule-based responses
+    # FIX #3: wrap the rest of the handler so ANY unexpected exception
+    # (DB hiccup, LangChain internals, etc.) still comes back as JSON
+    # instead of Flask's HTML debug traceback page — which is exactly
+    # the kind of response that breaks `fetch().then(r => r.json())`
+    # and shows up in the UI as a generic "network error".
     try:
-        chain = get_qa_chain()
-        if chain:
-            # Include user context for personalization
-            contextual_question = f"{user_context}\nQuestion: {question}" if user_context else question
-            # ConversationalRetrievalChain uses "question" as the input key
-            result = chain.invoke({"question": contextual_question})
-            answer = result.get("answer", "").strip()
-        else:
-            # Fallback mode (no API key or vector store)
-            answer = get_fallback_response(question)
-    except Exception as e:
-        # If RAG fails, use fallback
-        print(f"RAG Error: {e}")
-        answer = get_fallback_response(question)
+        # Build context from user profile for personalized responses
+        profile = Profile.query.filter_by(user_id=current_user.id).first()
+        user_context = ""
+        if profile:
+            details = []
+            if profile.age:
+                details.append(f"Age: {profile.age}")
+            if profile.gender:
+                details.append(f"Gender: {profile.gender}")
+            if profile.goal:
+                details.append(f"Goal: {profile.goal}")
+            if profile.fitness_level:
+                details.append(f"Fitness Level: {profile.fitness_level}")
+            if profile.medical_condition:
+                details.append(f"Medical Condition: {profile.medical_condition}")
+            if profile.weight and profile.height:
+                details.append(f"BMI: {round(profile.weight / ((profile.height / 100) ** 2), 1)}")
+            if details:
+                user_context = f"User Info: {' | '.join(details)}"
 
-    # Save chat history to database
-    try:
-        chat_entry = ChatHistory(
-            user_id=current_user.id,
-            question=question,
-            answer=answer
+        # Build contextual question with user profile info
+        contextual_question = f"{user_context}\nQuestion: {question}" if user_context else question
+
+        # Pull recent conversation history from the DB to give the LLM
+        # continuity across turns (replaces the old in-memory
+        # ConversationBufferMemory, which was lost on every restart anyway).
+        recent = ChatHistory.query.filter_by(
+            user_id=current_user.id
+        ).order_by(ChatHistory.timestamp.desc()).limit(4).all()
+        chat_history_text = "\n".join(
+            f"User: {c.question}\nFitGenie AI: {c.answer}" for c in reversed(recent)
         )
-        db.session.add(chat_entry)
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
 
-    return jsonify({
-        "success": True,
-        "question": question,
-        "answer": answer
-    })
+        # Try 3 tiers: RAG → LLM-only → rule-based fallback
+        answer = None
+
+        # Tier 1: RAG pipeline (LLM + vector store)
+        try:
+            answer = generate_rag_answer(contextual_question, chat_history_text)
+            if answer:
+                print(f"✅ RAG response for: {question[:50]}...")
+        except Exception as e:
+            print(f"⚠️  RAG failed: {e}")
+
+        # Tier 2: LLM-only (no vector store, still uses Groq)
+        if not answer:
+            try:
+                answer = generate_llm_only_answer(contextual_question, chat_history_text)
+                if answer:
+                    print(f"✅ LLM-only response for: {question[:50]}...")
+            except Exception as e:
+                print(f"⚠️  LLM-only failed: {e}")
+
+        # Tier 3: Rule-based fallback (no API key at all)
+        if not answer:
+            answer = get_fallback_response(question)
+            print(f"⚠️  Fallback response for: {question[:50]}...")
+
+        # Save chat history to database
+        try:
+            chat_entry = ChatHistory(
+                user_id=current_user.id,
+                question=question,
+                answer=answer
+            )
+            db.session.add(chat_entry)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        return jsonify({
+            "success": True,
+            "question": question,
+            "answer": answer
+        })
+
+    except Exception as e:
+        print(f"❌ /chat crashed unexpectedly: {e}")
+        return jsonify({
+            "success": False,
+            "message": "Something went wrong generating a response. Please try again."
+        }), 500
 
 
 @app.route("/get-history", methods=["GET"])
@@ -816,9 +1005,10 @@ def upload_document():
     file_path = os.path.join("documents", file.filename)
     file.save(file_path)
 
-    # Reset QA chain so it rebuilds with the new document
-    global qa_chain
-    qa_chain = None
+    # Reset the vector store singleton so it rebuilds with the new document
+    global _vector_store, _vector_store_initialized
+    _vector_store = None
+    _vector_store_initialized = False
 
     return jsonify({
         "success": True,
@@ -864,15 +1054,52 @@ if __name__ == "__main__":
     os.makedirs("documents", exist_ok=True)
     os.makedirs("vectorstore", exist_ok=True)
 
+    # --- Startup Diagnostics ---
     print("=" * 60)
     print("  FitGenie AI - Intelligent Fitness Assistant")
     print("  Running on http://127.0.0.1:5000")
     print("=" * 60)
     print()
-    print("  📋 Make sure to:")
-    print("  1. Add your OPENAI_API_KEY to .env file")
-    print("  2. Place PDF files in the 'documents/' folder")
-    print("  3. Register a new account at /register")
+
+    # Check Groq API key
+    api_key = os.getenv("GROQ_API_KEY")
+    if api_key and api_key.strip() and "your-groq-api-key" not in api_key:
+        print("  ✅ Groq API key found")
+    else:
+        print("  ⚠️  No valid Groq API key — using rule-based fallback")
+        print("     Set GROQ_API_KEY in .env for AI-powered responses")
+        print("     Get a free key at https://console.groq.com/keys")
+
+    # Check embeddings availability
+    try:
+        import sentence_transformers
+        print("  ✅ sentence-transformers available (GPU-quality embeddings)")
+    except ImportError:
+        try:
+            from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
+            print("  ✅ ChromaDB ONNX embeddings available (lightweight fallback)")
+        except ImportError:
+            print("  ⚠️  No embedding backend — RAG will be unavailable")
+
+    # Check documents folder
+    doc_count = len([f for f in os.listdir("documents") if f.endswith((".pdf", ".txt"))]) if os.path.exists("documents") else 0
+    if doc_count > 0:
+        print(f"  ✅ {doc_count} document(s) found for RAG")
+    else:
+        print("  ⚠️  No documents found — RAG will be unavailable")
+        print("     Place .pdf or .txt files in the 'documents/' folder")
+
+    # Check vectorstore
+    if os.path.exists("vectorstore") and os.listdir("vectorstore"):
+        print("  ✅ Vector store exists")
+    else:
+        print("  ℹ️  Vector store will be created on first chat")
+
+    print()
+    print("  📋 Quick start:")
+    print("  1. Register at http://127.0.0.1:5000/register")
+    print("  2. Update your fitness profile")
+    print("  3. Start chatting with FitGenie AI!")
     print()
 
     app.run(debug=True, host="0.0.0.0", port=5000)
