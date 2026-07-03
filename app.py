@@ -93,6 +93,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"  # Redirect to login page if not authenticated
+login_manager.login_message_category = "info"
 
 
 # --- FIX #1 ------------------------------------------------------------
@@ -627,10 +628,10 @@ def login():
 @login_required
 def logout():
     """Logout the current user and clear session."""
-    logout_user()
     session.clear()
+    logout_user()
     flash("You have been logged out.", "info")
-    return redirect(url_for("login"))
+    return redirect(url_for("index"))
 
 
 # ============================================================
@@ -638,6 +639,18 @@ def logout():
 # ============================================================
 
 @app.route("/")
+def index():
+    """
+    Landing Page Route
+    Displays the homepage with hero section and navigation to login/register.
+    If user is already logged in, redirect to dashboard.
+    """
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+    return render_template("index.html")
+
+
+@app.route("/dashboard")
 @login_required
 def dashboard():
     """
@@ -1097,9 +1110,10 @@ if __name__ == "__main__":
 
     print()
     print("  📋 Quick start:")
-    print("  1. Register at http://127.0.0.1:5000/register")
-    print("  2. Update your fitness profile")
-    print("  3. Start chatting with FitGenie AI!")
+    print("  1. Visit http://127.0.0.1:5000 for the landing page")
+    print("  2. Register at http://127.0.0.1:5000/register")
+    print("  3. Update your fitness profile")
+    print("  4. Start chatting with FitGenie AI!")
     print()
 
     app.run(debug=True, host="0.0.0.0", port=5000)

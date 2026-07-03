@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+<!-- STITCH_THREEJS_START:ANIMATION_8 class="fixed inset-0 w-full h-full bg-transparent" -->
+<div class="fixed inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_8" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_8');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  (function() {
+    const container = document.getElementById('threejs-container'); // Note: Container variable is provided in scope by the platform, but this is for robustness
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || window.innerHeight;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    // Create a "Neural Core" - an abstract representation of AI intelligence
+    const group = new THREE.Group();
+    scene.add(group);
+
+    // Central Sphere (The Core)
+    const coreGeom = new THREE.IcosahedronGeometry(1, 4);
+    const coreMat = new THREE.MeshPhongMaterial({
+        color: 0xCCFF00,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.3,
+        emissive: 0xCCFF00,
+        emissiveIntensity: 0.5
+    });
+    const core = new THREE.Mesh(coreGeom, coreMat);
+    group.add(core);
+
+    // Orbital Rings (The Data Streams)
+    const ringPoints = 120;
+    const ringCount = 3;
+    for (let r = 0; r < ringCount; r++) {
+        const ringGeom = new THREE.BufferGeometry();
+        const positions = new Float32Array(ringPoints * 3);
+        const radius = 1.5 + r * 0.4;
+        
+        for (let i = 0; i < ringPoints; i++) {
+            const angle = (i / ringPoints) * Math.PI * 2;
+            positions[i * 3] = Math.cos(angle) * radius;
+            positions[i * 3 + 1] = Math.sin(angle) * radius;
+            positions[i * 3 + 2] = 0;
+        }
+        
+        ringGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const ringMat = new THREE.LineBasicMaterial({ color: 0xCCFF00, transparent: true, opacity: 0.4 });
+        const ring = new THREE.LineLoop(ringGeom, ringMat);
+        
+        ring.rotation.x = Math.random() * Math.PI;
+        ring.rotation.y = Math.random() * Math.PI;
+        group.add(ring);
+    }
+
+    // Particle Swarm
+    const particleCount = 200;
+    const particleGeom = new THREE.BufferGeometry();
+    const particlePos = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i++) {
+        particlePos[i * 3] = (Math.random() - 0.5) * 6;
+        particlePos[i * 3 + 1] = (Math.random() - 0.5) * 6;
+        particlePos[i * 3 + 2] = (Math.random() - 0.5) * 6;
+    }
+    particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+    const particleMat = new THREE.PointsMaterial({ color: 0xCCFF00, size: 0.02, transparent: true, opacity: 0.8 });
+    const particles = new THREE.Points(particleGeom, particleMat);
+    group.add(particles);
+
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xCCFF00, 1, 10);
+    pointLight.position.set(2, 3, 4);
+    scene.add(pointLight);
+
+    camera.position.z = 4;
+
+    let mouseX = 0, mouseY = 0;
+    window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) - 0.5;
+        mouseY = (e.clientY / window.innerHeight) - 0.5;
+    });
+
+    window.addEventListener('resize', () => {
+        const w = container.clientWidth || window.innerWidth;
+        const h = container.clientHeight || window.innerHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+    });
+
+    function animate() {
+        requestAnimationFrame(animate);
+        group.rotation.y += 0.005;
+        group.rotation.x += 0.002;
+        
+        // Dynamic reaction to mouse
+        group.rotation.y += mouseX * 0.05;
+        group.rotation.x += mouseY * 0.05;
+        
+        core.rotation.z += 0.01;
+        particles.rotation.y -= 0.002;
+        
+        renderer.render(scene, camera);
+    }
+    animate();
+})();
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_8 -->
+</body>
+</html>

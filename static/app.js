@@ -197,17 +197,17 @@ async function calculateBMI() {
             const categoryEl = document.getElementById('bmiCategory');
             categoryEl.className = 'bmi-category';
             if (data.category === 'Normal') {
-                categoryEl.style.background = 'rgba(81, 207, 102, 0.15)';
-                categoryEl.style.color = '#51CF66';
+                categoryEl.style.background = 'rgba(125, 244, 255, 0.15)';
+                categoryEl.style.color = '#7df4ff';
             } else if (data.category === 'Underweight') {
-                categoryEl.style.background = 'rgba(255, 184, 77, 0.15)';
-                categoryEl.style.color = '#FFB84D';
+                categoryEl.style.background = 'rgba(220, 184, 255, 0.15)';
+                categoryEl.style.color = '#dcb8ff';
             } else if (data.category === 'Overweight') {
-                categoryEl.style.background = 'rgba(255, 184, 77, 0.15)';
-                categoryEl.style.color = '#FFB84D';
+                categoryEl.style.background = 'rgba(220, 184, 255, 0.15)';
+                categoryEl.style.color = '#dcb8ff';
             } else {
-                categoryEl.style.background = 'rgba(255, 107, 107, 0.15)';
-                categoryEl.style.color = '#FF6B6B';
+                categoryEl.style.background = 'rgba(255, 180, 171, 0.15)';
+                categoryEl.style.color = '#ffb4ab';
             }
 
             resultDiv.style.display = 'block';
@@ -594,7 +594,7 @@ function escapeHtml(text) {
 // INITIALIZATION
 // ============================================================
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('💪 FitGenie AI - Frontend initialized');
+    console.log('🔥 FitGenie - Forge Athletic edition initialized');
 
     // Show dashboard section by default
     showSection('dashboard');
@@ -721,7 +721,7 @@ function initCounterAnimation() {
 // CONFETTI EFFECT - Celebratory animation for BMI results
 // ============================================================
 function createConfetti() {
-    const colors = ['#6C63FF', '#00D9A6', '#FFB84D', '#FF6B6B', '#4DC9F6', '#51CF66', '#FF85D4'];
+    const colors = ['#FF4B2B', '#B23A22', '#3E7CB1', '#FFFFFF', '#8A8578', '#E7E5E0'];
     const container = document.querySelector('.bmi-result');
     if (!container) return;
 

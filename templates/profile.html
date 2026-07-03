@@ -1,152 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitGenie AI - Profile</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitGenie — Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- ============================================================
-    SIDEBAR NAVIGATION (same as dashboard)
-    ============================================================ -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <span class="logo-icon">💪</span>
-                <h2>FitGenie AI</h2>
-            </div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="material-symbols-outlined logo-icon">fitness_center</span>
+        <h2>FitGenie</h2>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-section-title">Main</span>
+        <a href="{{ url_for('dashboard') }}" class="nav-item">
+          <span class="material-symbols-outlined nav-icon">dashboard</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item active">
+          <span class="material-symbols-outlined nav-icon">person</span>
+          <span>My Profile</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-section-title">AI Assistant</span>
+        <a href="{{ url_for('dashboard') }}#chat" class="nav-item">
+          <span class="material-symbols-outlined nav-icon">psychiatry</span>
+          <span>AI Chat</span>
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">{{ current_user.name[0] | upper }}</div>
+        <div class="user-details">
+          <span class="user-name">{{ current_user.name }}</span>
+          <span class="user-email">{{ current_user.email }}</span>
         </div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn-logout">
+        <span class="material-symbols-outlined" style="font-size:18px;">logout</span> Logout
+      </a>
+    </div>
+  </aside>
 
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <span class="nav-section-title">Main</span>
-                <a href="{{ url_for('dashboard') }}" class="nav-item">
-                    <span class="nav-icon">📊</span>
-                    <span>Dashboard</span>
-                </a>
-                <a href="{{ url_for('profile') }}" class="nav-item active">
-                    <span class="nav-icon">👤</span>
-                    <span>My Profile</span>
-                </a>
-            </div>
+  <main class="main-content">
+    <header class="topbar">
+      <h1>My Profile</h1>
+    </header>
+    <div class="content-area">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
 
-            <div class="nav-section">
-                <span class="nav-section-title">AI Assistant</span>
-                <a href="{{ url_for('dashboard') }}#chat" class="nav-item">
-                    <span class="nav-icon">🤖</span>
-                    <span>AI Chat</span>
-                </a>
-            </div>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar">{{ current_user.name[0] | upper }}</div>
-                <div class="user-details">
-                    <span class="user-name">{{ current_user.name }}</span>
-                    <span class="user-email">{{ current_user.email }}</span>
-                </div>
-            </div>
-            <a href="{{ url_for('logout') }}" class="btn btn-logout">🚪 Logout</a>
+      <div class="card">
+        <div class="card-header">
+          <h3>Your Fitness Profile</h3>
+          <p>Update your details for personalized fitness recommendations</p>
         </div>
-    </aside>
-
-    <!-- ============================================================
-    MAIN CONTENT
-    ============================================================ -->
-    <main class="main-content">
-        <header class="topbar">
-            <h1>My Profile</h1>
-        </header>
-
-        <div class="content-area">
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
-            <div class="card">
-                <div class="card-header">
-                    <h3>Your Fitness Profile</h3>
-                    <p>Update your details for personalized fitness recommendations</p>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('profile') }}" class="profile-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="age">Age</label>
-                                <input type="number" id="age" name="age" min="1" max="150"
-                                    value="{{ profile.age if profile and profile.age else '' }}"
-                                    placeholder="e.g. 25">
-                            </div>
-                            <div class="form-group">
-                                <label for="gender">Gender</label>
-                                <select id="gender" name="gender">
-                                    <option value="">Select gender</option>
-                                    <option value="Male" {{ 'selected' if profile and profile.gender == 'Male' else '' }}>Male</option>
-                                    <option value="Female" {{ 'selected' if profile and profile.gender == 'Female' else '' }}>Female</option>
-                                    <option value="Other" {{ 'selected' if profile and profile.gender == 'Other' else '' }}>Other</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="height">Height (cm)</label>
-                                <input type="number" id="height" name="height" min="1" step="0.1"
-                                    value="{{ profile.height if profile and profile.height else '' }}"
-                                    placeholder="e.g. 175">
-                            </div>
-                            <div class="form-group">
-                                <label for="weight">Weight (kg)</label>
-                                <input type="number" id="weight" name="weight" min="1" step="0.1"
-                                    value="{{ profile.weight if profile and profile.weight else '' }}"
-                                    placeholder="e.g. 70">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="goal">Fitness Goal</label>
-                            <select id="goal" name="goal">
-                                <option value="">Select your goal</option>
-                                <option value="Lose Weight" {{ 'selected' if profile and profile.goal == 'Lose Weight' else '' }}>Lose Weight</option>
-                                <option value="Build Muscle" {{ 'selected' if profile and profile.goal == 'Build Muscle' else '' }}>Build Muscle</option>
-                                <option value="Maintain Fitness" {{ 'selected' if profile and profile.goal == 'Maintain Fitness' else '' }}>Maintain Fitness</option>
-                                <option value="Improve Endurance" {{ 'selected' if profile and profile.goal == 'Improve Endurance' else '' }}>Improve Endurance</option>
-                                <option value="General Health" {{ 'selected' if profile and profile.goal == 'General Health' else '' }}>General Health</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="fitness_level">Fitness Level</label>
-                            <select id="fitness_level" name="fitness_level">
-                                <option value="">Select your level</option>
-                                <option value="Beginner" {{ 'selected' if profile and profile.fitness_level == 'Beginner' else '' }}>Beginner</option>
-                                <option value="Intermediate" {{ 'selected' if profile and profile.fitness_level == 'Intermediate' else '' }}>Intermediate</option>
-                                <option value="Advanced" {{ 'selected' if profile and profile.fitness_level == 'Advanced' else '' }}>Advanced</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="medical_condition">Medical Conditions (optional)</label>
-                            <textarea id="medical_condition" name="medical_condition" rows="2"
-                                placeholder="e.g. Diabetes, High BP, Asthma - or leave blank">{{ profile.medical_condition if profile and profile.medical_condition else '' }}</textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Save Profile</button>
-                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline" style="margin-left: 8px;">Cancel</a>
-                    </form>
-                </div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('profile') }}" class="profile-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" min="1" max="150"
+                  value="{{ profile.age if profile and profile.age else '' }}"
+                  placeholder="e.g. 25">
+              </div>
+              <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender">
+                  <option value="">Select gender</option>
+                  <option value="Male" {{ 'selected' if profile and profile.gender == 'Male' else '' }}>Male</option>
+                  <option value="Female" {{ 'selected' if profile and profile.gender == 'Female' else '' }}>Female</option>
+                  <option value="Other" {{ 'selected' if profile and profile.gender == 'Other' else '' }}>Other</option>
+                </select>
+              </div>
             </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="height">Height (cm)</label>
+                <input type="number" id="height" name="height" min="1" step="0.1"
+                  value="{{ profile.height if profile and profile.height else '' }}"
+                  placeholder="e.g. 175">
+              </div>
+              <div class="form-group">
+                <label for="weight">Weight (kg)</label>
+                <input type="number" id="weight" name="weight" min="1" step="0.1"
+                  value="{{ profile.weight if profile and profile.weight else '' }}"
+                  placeholder="e.g. 70">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="goal">Fitness Goal</label>
+              <select id="goal" name="goal">
+                <option value="">Select your goal</option>
+                <option value="Lose Weight" {{ 'selected' if profile and profile.goal == 'Lose Weight' else '' }}>Lose Weight</option>
+                <option value="Build Muscle" {{ 'selected' if profile and profile.goal == 'Build Muscle' else '' }}>Build Muscle</option>
+                <option value="Maintain Fitness" {{ 'selected' if profile and profile.goal == 'Maintain Fitness' else '' }}>Maintain Fitness</option>
+                <option value="Improve Endurance" {{ 'selected' if profile and profile.goal == 'Improve Endurance' else '' }}>Improve Endurance</option>
+                <option value="General Health" {{ 'selected' if profile and profile.goal == 'General Health' else '' }}>General Health</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="fitness_level">Fitness Level</label>
+              <select id="fitness_level" name="fitness_level">
+                <option value="">Select your level</option>
+                <option value="Beginner" {{ 'selected' if profile and profile.fitness_level == 'Beginner' else '' }}>Beginner</option>
+                <option value="Intermediate" {{ 'selected' if profile and profile.fitness_level == 'Intermediate' else '' }}>Intermediate</option>
+                <option value="Advanced" {{ 'selected' if profile and profile.fitness_level == 'Advanced' else '' }}>Advanced</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="medical_condition">Medical Conditions (optional)</label>
+              <textarea id="medical_condition" name="medical_condition" rows="2"
+                placeholder="e.g. Diabetes, High BP, Asthma - or leave blank">{{ profile.medical_condition if profile and profile.medical_condition else '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-ember">Save Profile</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline" style="margin-left: 8px;">Cancel</a>
+          </form>
         </div>
-    </main>
+      </div>
+    </div>
+  </main>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

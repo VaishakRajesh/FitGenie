@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FitGenie AI - Performance Telemetry</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#690005",
+                        "on-tertiary-container": "#006f77",
+                        "on-secondary-fixed": "#2c0051",
+                        "error": "#ffb4ab",
+                        "on-primary": "#283500",
+                        "background": "#131313",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "on-surface": "#e5e2e1",
+                        "surface-container": "#201f1f",
+                        "tertiary": "#ffffff",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-container": "#7df4ff",
+                        "outline-variant": "#444933",
+                        "inverse-surface": "#e5e2e1",
+                        "surface-variant": "#353534",
+                        "outline": "#8e9379",
+                        "secondary-fixed-dim": "#dcb8ff",
+                        "primary-container": "#c3f400",
+                        "surface-bright": "#3a3939",
+                        "on-secondary-fixed-variant": "#6700b5",
+                        "tertiary-fixed-dim": "#00dbe9",
+                        "on-background": "#e5e2e1",
+                        "secondary": "#dcb8ff",
+                        "surface-container-high": "#2a2a2a",
+                        "tertiary-fixed": "#7df4ff",
+                        "secondary-container": "#7701d0",
+                        "primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004f54",
+                        "primary-fixed": "#c3f400",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-tint": "#abd600",
+                        "secondary-fixed": "#efdbff",
+                        "on-primary-container": "#556d00",
+                        "surface-container-low": "#1c1b1b",
+                        "on-primary-fixed": "#161e00",
+                        "inverse-on-surface": "#313030",
+                        "on-surface-variant": "#c4c9ac",
+                        "on-tertiary": "#00363a",
+                        "on-secondary": "#480081",
+                        "inverse-primary": "#506600",
+                        "on-tertiary-fixed": "#002022",
+                        "primary-fixed-dim": "#abd600",
+                        "surface-dim": "#131313",
+                        "surface-container-highest": "#353534",
+                        "surface": "#131313",
+                        "on-secondary-container": "#dcb7ff",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "64px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "margin-desktop": "80px",
+                        "sm": "16px",
+                        "md": "24px",
+                        "lg": "40px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-xl": ["Archivo Narrow"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Archivo Narrow"],
+                        "label-md": ["JetBrains Mono"],
+                        "headline-lg": ["Archivo Narrow"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Archivo Narrow"],
+                        "label-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-xl": ["72px", { "lineHeight": "72px", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "28px", "letterSpacing": "0em", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-lg": ["40px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(10, 10, 10, 0.5);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(195, 244, 0, 0.1);
+        }
+        .glow-border:hover {
+            box-shadow: 0 0 32px rgba(195, 244, 0, 0.15);
+            border-color: rgba(195, 244, 0, 0.5);
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(195, 244, 0, 0.4);
+        }
+        .scanline {
+            background: linear-gradient(to bottom, transparent 0%, rgba(195, 244, 0, 0.2) 50%, transparent 100%);
+            height: 4px;
+            width: 100%;
+            position: absolute;
+            animation: scan 3s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+        .terminal-text {
+            border-right: 2px solid #c3f400;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen relative overflow-x-hidden selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Background Shader -->
+<div class="fixed inset-0 z-[-1] pointer-events-none opacity-40 mix-blend-screen">
+<!-- STITCH_SHADER_START:ANIMATION_7 class="absolute inset-0 w-full h-full" -->
+<div class="absolute inset-0 w-full h-full" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_7" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_7');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+varying vec2 v_texCoord;
+
+float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i + vec2(0.0, 0.0)), hash(i + vec2(1.0, 0.0)), u.x),
+               mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+
+void main() {
+    vec2 uv = v_texCoord;
+    vec2 mouse = u_mouse / u_resolution;
+    
+    // Create a flowing "Kinetic Liquid" effect
+    float t = u_time * 0.4;
+    vec2 p = uv * 4.0;
+    
+    for(int i = 1; i < 5; i++) {
+        float fi = float(i);
+        p += vec2(
+            0.5 / fi * sin(fi * p.y + t + mouse.x * 3.0) + 0.3,
+            0.5 / fi * cos(fi * p.x + t + mouse.y * 3.0) + 0.2
+        );
+    }
+    
+    float intensity = 0.5 + 0.5 * sin(p.x + p.y);
+    
+    // Obsidian Deep Charcoal Base
+    vec3 obsidian = vec3(0.04, 0.04, 0.05);
+    // Kinetic Lime Energy
+    vec3 kineticLime = vec3(0.8, 1.0, 0.0);
+    // Dark Electric Blue depth
+    vec3 electricBlue = vec3(0.0, 0.2, 0.4);
+    
+    vec3 color = mix(obsidian, electricBlue, noise(uv * 2.0 + t * 0.1) * 0.3);
+    color = mix(color, kineticLime, pow(intensity, 8.0) * 0.2);
+    
+    // Scanning line effect
+    float scanline = sin(uv.y * 400.0 + u_time * 10.0) * 0.02;
+    color += scanline * kineticLime;
+    
+    // Vignette
+    float dist = distance(uv, vec2(0.5));
+    color *= smoothstep(1.2, 0.3, dist);
+    
+    gl_FragColor = vec4(color, 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_7 -->
+</div>
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-background/60 backdrop-blur-xl border-b border-primary/10">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-md max-w-full mx-auto">
+<div class="font-display-xl text-headline-md tracking-tighter text-primary-fixed">
+                FitGenie AI
+            </div>
+<div class="hidden md:flex gap-lg items-center font-label-md text-label-md">
+<a class="text-primary-fixed font-bold border-b-2 border-primary-fixed pb-1" href="#">Training</a>
+<a class="text-on-surface-variant hover:text-primary-fixed hover:drop-shadow-[0_0_8px_rgba(171,214,0,0.5)] transition-all" href="#">Nutrition</a>
+<a class="text-on-surface-variant hover:text-primary-fixed hover:drop-shadow-[0_0_8px_rgba(171,214,0,0.5)] transition-all" href="#">AI Chat</a>
+<a class="text-on-surface-variant hover:text-primary-fixed hover:drop-shadow-[0_0_8px_rgba(171,214,0,0.5)] transition-all" href="#">Analysis</a>
+</div>
+<button class="bg-primary-fixed text-on-primary-fixed font-label-md text-label-md px-sm py-xs rounded-DEFAULT btn-glow transition-all active:scale-95 hidden md:block">
+                Get Started
+            </button>
+<button class="md:hidden text-primary-fixed">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="pt-[100px] px-margin-mobile md:px-margin-desktop pb-xl relative">
+<!-- Hero Section -->
+<section class="min-h-[819px] flex flex-col md:flex-row items-center gap-xl relative">
+<div class="flex-1 fade-in-up" style="animation-delay: 0.2s;">
+<div class="inline-flex items-center gap-xs border border-primary-fixed/30 bg-primary-fixed/10 px-xs py-base rounded-full mb-md">
+<div class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></div>
+<span class="font-label-sm text-label-sm text-primary-fixed tracking-widest">SYSTEM ONLINE</span>
+</div>
+<h1 class="font-display-xl text-display-xl mb-sm leading-tight text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                    OPTIMIZE<br/>
+<span class="text-primary-fixed drop-shadow-[0_0_20px_rgba(195,244,0,0.3)]">PERFORMANCE.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-lg max-w-xl">
+                    Advanced telemetry and biometric RAG integration for elite athletes. Hardcode your physical evolution with neural network precision.
+                </p>
+<div class="flex gap-md">
+<button class="bg-primary-fixed text-on-primary-fixed font-label-md text-label-md px-md py-sm rounded-DEFAULT btn-glow transition-all active:scale-95">
+                        INITIALIZE SYNC
+                    </button>
+<button class="border border-primary-fixed text-primary-fixed font-label-md text-label-md px-md py-sm rounded-DEFAULT hover:bg-primary-fixed/10 transition-all active:scale-95">
+                        VIEW DOCS
+                    </button>
+</div>
+</div>
+<div class="flex-1 h-[500px] relative fade-in-up rounded-xl overflow-hidden glass-panel glow-border transition-all duration-500" style="animation-delay: 0.4s;">
+<div class="absolute top-0 left-0 w-full h-full p-1 z-10 pointer-events-none">
+<div class="border-t border-l border-primary-fixed/50 w-8 h-8 absolute top-0 left-0"></div>
+<div class="border-t border-r border-primary-fixed/50 w-8 h-8 absolute top-0 right-0"></div>
+<div class="border-b border-l border-primary-fixed/50 w-8 h-8 absolute bottom-0 left-0"></div>
+<div class="border-b border-r border-primary-fixed/50 w-8 h-8 absolute bottom-0 right-0"></div>
+</div>
+<div class="absolute top-4 left-4 font-label-sm text-label-sm text-primary-fixed/70 z-20">NEURAL_CORE_V2.obj</div>
+<!-- 3D Scene Embed -->
+<!-- STITCH_THREEJS_START:ANIMATION_8 class="absolute inset-0 w-full h-full mix-blend-screen opacity-90" -->
+<div class="absolute inset-0 w-full h-full mix-blend-screen opacity-90" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_8" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_8');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  (function() {
+    const container = document.getElementById('threejs-container'); // Note: Container variable is provided in scope by the platform, but this is for robustness
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || window.innerHeight;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    // Create a "Neural Core" - an abstract representation of AI intelligence
+    const group = new THREE.Group();
+    scene.add(group);
+
+    // Central Sphere (The Core)
+    const coreGeom = new THREE.IcosahedronGeometry(1, 4);
+    const coreMat = new THREE.MeshPhongMaterial({
+        color: 0xCCFF00,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.3,
+        emissive: 0xCCFF00,
+        emissiveIntensity: 0.5
+    });
+    const core = new THREE.Mesh(coreGeom, coreMat);
+    group.add(core);
+
+    // Orbital Rings (The Data Streams)
+    const ringPoints = 120;
+    const ringCount = 3;
+    for (let r = 0; r < ringCount; r++) {
+        const ringGeom = new THREE.BufferGeometry();
+        const positions = new Float32Array(ringPoints * 3);
+        const radius = 1.5 + r * 0.4;
+        
+        for (let i = 0; i < ringPoints; i++) {
+            const angle = (i / ringPoints) * Math.PI * 2;
+            positions[i * 3] = Math.cos(angle) * radius;
+            positions[i * 3 + 1] = Math.sin(angle) * radius;
+            positions[i * 3 + 2] = 0;
+        }
+        
+        ringGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const ringMat = new THREE.LineBasicMaterial({ color: 0xCCFF00, transparent: true, opacity: 0.4 });
+        const ring = new THREE.LineLoop(ringGeom, ringMat);
+        
+        ring.rotation.x = Math.random() * Math.PI;
+        ring.rotation.y = Math.random() * Math.PI;
+        group.add(ring);
+    }
+
+    // Particle Swarm
+    const particleCount = 200;
+    const particleGeom = new THREE.BufferGeometry();
+    const particlePos = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i++) {
+        particlePos[i * 3] = (Math.random() - 0.5) * 6;
+        particlePos[i * 3 + 1] = (Math.random() - 0.5) * 6;
+        particlePos[i * 3 + 2] = (Math.random() - 0.5) * 6;
+    }
+    particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+    const particleMat = new THREE.PointsMaterial({ color: 0xCCFF00, size: 0.02, transparent: true, opacity: 0.8 });
+    const particles = new THREE.Points(particleGeom, particleMat);
+    group.add(particles);
+
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xCCFF00, 1, 10);
+    pointLight.position.set(2, 3, 4);
+    scene.add(pointLight);
+
+    camera.position.z = 4;
+
+    let mouseX = 0, mouseY = 0;
+    window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) - 0.5;
+        mouseY = (e.clientY / window.innerHeight) - 0.5;
+    });
+
+    window.addEventListener('resize', () => {
+        const w = container.clientWidth || window.innerWidth;
+        const h = container.clientHeight || window.innerHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+    });
+
+    function animate() {
+        requestAnimationFrame(animate);
+        group.rotation.y += 0.005;
+        group.rotation.x += 0.002;
+        
+        // Dynamic reaction to mouse
+        group.rotation.y += mouseX * 0.05;
+        group.rotation.x += mouseY * 0.05;
+        
+        core.rotation.z += 0.01;
+        particles.rotation.y -= 0.002;
+        
+        renderer.render(scene, camera);
+    }
+    animate();
+})();
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_8 -->
+<div class="scanline z-20"></div>
+</div>
+</section>
+<!-- Bento Features -->
+<section class="py-xl">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg mb-xl fade-in-up">TELEMETRY <span class="text-primary-fixed">MODULES</span></h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="glass-panel rounded-lg p-lg glow-border transition-all duration-300 fade-in-up hover:-translate-y-2 group" style="animation-delay: 0.2s;">
+<span class="material-symbols-outlined text-[40px] text-primary-fixed mb-md group-hover:drop-shadow-[0_0_15px_rgba(195,244,0,0.6)] transition-all">psychiatry</span>
+<h3 class="font-headline-md text-headline-md mb-xs text-white">Training Intelligence</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Algorithmic load management adapting in real-time to your CNS fatigue markers.</p>
+</div>
+<div class="glass-panel rounded-lg p-lg glow-border transition-all duration-300 fade-in-up hover:-translate-y-2 group" style="animation-delay: 0.3s;">
+<span class="material-symbols-outlined text-[40px] text-primary-fixed mb-md group-hover:drop-shadow-[0_0_15px_rgba(195,244,0,0.6)] transition-all">database</span>
+<h3 class="font-headline-md text-headline-md mb-xs text-white">Biometric RAG</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Retrieval-Augmented Generation parsing your entire historical bio-data stream.</p>
+</div>
+<div class="glass-panel rounded-lg p-lg glow-border transition-all duration-300 fade-in-up hover:-translate-y-2 group" style="animation-delay: 0.4s;">
+<span class="material-symbols-outlined text-[40px] text-primary-fixed mb-md group-hover:drop-shadow-[0_0_15px_rgba(195,244,0,0.6)] transition-all">monitoring</span>
+<h3 class="font-headline-md text-headline-md mb-xs text-white">Performance Telemetry</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">High-fidelity visualization of macro and micro nutritional processing.</p>
+</div>
+</div>
+</section>
+<!-- Terminal Section -->
+<section class="py-xl">
+<div class="glass-panel rounded-xl p-md border border-surface-variant fade-in-up" style="animation-delay: 0.5s;">
+<div class="flex items-center gap-xs mb-md border-b border-surface-variant pb-xs">
+<div class="w-3 h-3 rounded-full bg-error"></div>
+<div class="w-3 h-3 rounded-full bg-primary-fixed"></div>
+<div class="w-3 h-3 rounded-full bg-tertiary-container"></div>
+<span class="ml-sm font-label-sm text-label-sm text-on-surface-variant">fitgenie_terminal // root@bio_server</span>
+</div>
+<div class="font-label-md text-label-md space-y-xs text-on-surface-variant">
+<p><span class="text-primary-fixed">&gt;</span> Connecting to neural bridge...</p>
+<p class="text-primary-fixed">&gt; SUCCESS</p>
+<p><span class="text-primary-fixed">&gt;</span> Analyzing recent workout data packet (ID: 8992_BETA)...</p>
+<p class="text-tertiary-container">WARN: CNS Fatigue detected at 78%. Suggesting deload protocol alpha.</p>
+<p><span class="text-primary-fixed">&gt;</span> <span class="terminal-text text-white" id="terminal-typewriter">Awaiting command input...</span></p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-xl bg-surface-container-lowest px-margin-mobile md:px-margin-desktop py-lg border-t border-outline-variant/20">
+<div class="flex flex-col md:flex-row justify-between items-center gap-md">
+<div class="font-display-xl text-headline-md text-primary-fixed">
+                FitGenie AI
+            </div>
+<div class="flex flex-wrap gap-md justify-center font-body-md text-body-md">
+<a class="text-on-surface-variant hover:text-primary-fixed transition-colors" href="#">Privacy Protocol</a>
+<a class="text-on-surface-variant hover:text-primary-fixed transition-colors" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary-fixed transition-colors" href="#">Advanced API</a>
+<a class="text-on-surface-variant hover:text-primary-fixed transition-colors" href="#">Support</a>
+</div>
+<div class="font-body-md text-body-md text-on-surface-variant">
+                © 2024 FitGenie AI. Engineered for Peak Performance.
+            </div>
+</div>
+</footer>
+<script>
+        // Simple typewriter effect for terminal
+        const terminalText = "Querying optimal macro distribution...";
+        const targetElement = document.getElementById('terminal-typewriter');
+        let index = 0;
+        
+        setTimeout(() => {
+            targetElement.textContent = '';
+            function typeWriter() {
+                if (index < terminalText.length) {
+                    targetElement.textContent += terminalText.charAt(index);
+                    index++;
+                    setTimeout(typeWriter, 50);
+                }
+            }
+            typeWriter();
+        }, 3000);
+
+        // Intersection Observer for fade-in animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        });
+
+        document.querySelectorAll('.fade-in-up').forEach((el) => {
+            el.style.animationPlayState = 'paused';
+            observer.observe(el);
+        });
+    </script>
+</body></html>

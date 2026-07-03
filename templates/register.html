@@ -1,135 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitGenie AI - Register</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitGenie — Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="auth-body">
-    <div class="auth-container">
-        <!-- Left Section - Branding -->
-        <div class="auth-branding">
-            <div class="auth-logo">
-                <span class="logo-icon">💪</span>
-                <h1>FitGenie AI</h1>
-            </div>
-            <p class="auth-tagline">Start your fitness transformation today</p>
-            <div class="auth-steps">
-                <div class="auth-step">
-                    <span class="step-number">1</span>
-                    <div>
-                        <strong>Create Account</strong>
-                        <p>Register in seconds</p>
-                    </div>
-                </div>
-                <div class="auth-step">
-                    <span class="step-number">2</span>
-                    <div>
-                        <strong>Set Your Profile</strong>
-                        <p>Tell us your goals</p>
-                    </div>
-                </div>
-                <div class="auth-step">
-                    <span class="step-number">3</span>
-                    <div>
-                        <strong>Get Fit with AI</strong>
-                        <p>Personalized plans await</p>
-                    </div>
-                </div>
-            </div>
+  <div class="auth-container">
+    <!-- Branding -->
+    <div class="auth-branding">
+      <div class="auth-logo">
+        <span class="material-symbols-outlined logo-icon">fitness_center</span>
+        <h1>FitGenie</h1>
+      </div>
+      <p class="auth-tagline">Start your transformation today</p>
+      <div class="auth-steps">
+        <div class="auth-step">
+          <span class="step-number">01</span>
+          <div>
+            <strong>Create Account</strong>
+            <p>Register in seconds. No commitment.</p>
+          </div>
         </div>
-
-        <!-- Right Section - Register Form -->
-        <div class="auth-form-wrapper">
-            <div class="auth-form-container">
-                <h2>Create Account</h2>
-                <p class="auth-subtitle">Join FitGenie AI for free</p>
-
-                <!-- Flash Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                <form method="POST" action="{{ url_for('register') }}" class="auth-form" id="registerForm">
-                    <div class="form-group">
-                        <label for="name">Full Name</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">👤</span>
-                            <input
-                                type="text"
-                                id="name"
-                                name="name"
-                                placeholder="John Doe"
-                                required
-                                autocomplete="name"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">📧</span>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                placeholder="your@email.com"
-                                required
-                                autocomplete="email"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="password">Password</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">🔒</span>
-                                <input
-                                    type="password"
-                                    id="password"
-                                    name="password"
-                                    placeholder="Min. 6 characters"
-                                    required
-                                    autocomplete="new-password"
-                                >
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="confirm_password">Confirm Password</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">🔐</span>
-                                <input
-                                    type="password"
-                                    id="confirm_password"
-                                    name="confirm_password"
-                                    placeholder="Repeat password"
-                                    required
-                                    autocomplete="new-password"
-                                >
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-full">
-                        Create Account
-                    </button>
-                </form>
-
-                <p class="auth-redirect">
-                    Already have an account?
-                    <a href="{{ url_for('login') }}">Sign in</a>
-                </p>
-            </div>
+        <div class="auth-step">
+          <span class="step-number">02</span>
+          <div>
+            <strong>Set Your Profile</strong>
+            <p>Tell us your stats, goals, and experience.</p>
+          </div>
         </div>
+        <div class="auth-step">
+          <span class="step-number">03</span>
+          <div>
+            <strong>Forge Results</strong>
+            <p>Get your AI-powered program and start training.</p>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Form -->
+    <div class="auth-form-wrapper">
+      <div class="auth-form-container">
+        <h2>CREATE ACCOUNT</h2>
+        <p class="auth-subtitle">Join FitGenie for free</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">person</span>
+              <input type="text" id="name" name="name" placeholder="John Doe" required autocomplete="name">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">mail</span>
+              <input type="email" id="email" name="email" placeholder="your@email.com" required autocomplete="email">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="input-wrapper">
+                <span class="material-symbols-outlined input-icon">lock</span>
+                <input type="password" id="password" name="password" placeholder="Min. 6 characters" required autocomplete="new-password">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="confirm_password">Confirm</label>
+              <div class="input-wrapper">
+                <span class="material-symbols-outlined input-icon">lock</span>
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat password" required autocomplete="new-password">
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-ember btn-full">Create Account</button>
+        </form>
+
+        <p class="auth-redirect">
+          Already have an account?
+          <a href="{{ url_for('login') }}">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

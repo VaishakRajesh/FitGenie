@@ -1,106 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitGenie AI - Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitGenie — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="auth-body">
-    <div class="auth-container">
-        <!-- Left Section - Branding -->
-        <div class="auth-branding">
-            <div class="auth-logo">
-                <span class="logo-icon">💪</span>
-                <h1>FitGenie AI</h1>
-            </div>
-            <p class="auth-tagline">Your intelligent fitness companion powered by AI</p>
-            <div class="auth-features">
-                <div class="auth-feature">
-                    <span class="feature-icon">🤖</span>
-                    <span>AI-Powered Workout Plans</span>
-                </div>
-                <div class="auth-feature">
-                    <span class="feature-icon">🥗</span>
-                    <span>Personalized Nutrition Advice</span>
-                </div>
-                <div class="auth-feature">
-                    <span class="feature-icon">📊</span>
-                    <span>Smart BMI Analysis</span>
-                </div>
-                <div class="auth-feature">
-                    <span class="feature-icon">🧠</span>
-                    <span>RAG-Enhanced Knowledge</span>
-                </div>
-            </div>
+  <div class="auth-container">
+    <!-- Branding -->
+    <div class="auth-branding">
+      <div class="auth-logo">
+        <span class="material-symbols-outlined logo-icon">fitness_center</span>
+        <h1>FitGenie</h1>
+      </div>
+      <p class="auth-tagline">Forged by AI. Proven by you.</p>
+      <div class="auth-features">
+        <div class="auth-feature">
+          <span class="material-symbols-outlined feature-icon">fitness_center</span>
+          <span>AI-Powered Strength Cycles</span>
         </div>
-
-        <!-- Right Section - Login Form -->
-        <div class="auth-form-wrapper">
-            <div class="auth-form-container">
-                <h2>Welcome Back</h2>
-                <p class="auth-subtitle">Login to continue your fitness journey</p>
-
-                <!-- Flash Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                <form method="POST" action="{{ url_for('login') }}" class="auth-form" id="loginForm">
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">📧</span>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                placeholder="your@email.com"
-                                required
-                                autocomplete="email"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">🔒</span>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                placeholder="Enter your password"
-                                required
-                                autocomplete="current-password"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="form-options">
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="remember">
-                            <span>Remember me</span>
-                        </label>
-                        <!-- <a href="#" class="forgot-link">Forgot password?</a> -->
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-full">
-                        Sign In
-                    </button>
-                </form>
-
-                <p class="auth-redirect">
-                    Don't have an account?
-                    <a href="{{ url_for('register') }}">Create one</a>
-                </p>
-            </div>
+        <div class="auth-feature">
+          <span class="material-symbols-outlined feature-icon">monitoring</span>
+          <span>Real-Time Performance Tracking</span>
         </div>
+        <div class="auth-feature">
+          <span class="material-symbols-outlined feature-icon">database</span>
+          <span>RAG-Enhanced Training Knowledge</span>
+        </div>
+        <div class="auth-feature">
+          <span class="material-symbols-outlined feature-icon">self_improvement</span>
+          <span>Recovery &amp; CNS Management</span>
+        </div>
+      </div>
     </div>
+
+    <!-- Form -->
+    <div class="auth-form-wrapper">
+      <div class="auth-form-container">
+        <h2>WELCOME BACK</h2>
+        <p class="auth-subtitle">Log in to continue your program</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">mail</span>
+              <input type="email" id="email" name="email" placeholder="your@email.com" required autocomplete="email">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">lock</span>
+              <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="remember">
+              <span>Remember me</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-ember btn-full">Sign In</button>
+        </form>
+
+        <p class="auth-redirect">
+          Don't have an account?
+          <a href="{{ url_for('register') }}">Create one</a>
+        </p>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>FitGenie — Forged, Not Found</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Nav -->
+  <nav class="landing-nav">
+    <div class="logo">
+      <span class="material-symbols-outlined logo-icon">fitness_center</span>
+      FitGenie
+    </div>
+    <div class="nav-links">
+      <a href="#features">Programs</a>
+      <a href="#how-it-works">How It Works</a>
+    </div>
+    <div class="nav-actions">
+      <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm">Login</a>
+      <a href="{{ url_for('register') }}" class="btn btn-ember btn-sm">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="landing-hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        YOUR TRANSFORMATION STARTS HERE
+      </div>
+      <h1 class="hero-title">
+        FORGED,<br/>
+        <span class="highlight">NOT FOUND.</span>
+      </h1>
+      <p class="hero-desc">
+        Expert-crafted strength programs powered by intelligent coaching. One free session to prove what your body can do.
+      </p>
+      <div class="hero-actions">
+        <a href="{{ url_for('register') }}" class="btn btn-ember">Book Your Session</a>
+        <a href="#features" class="btn btn-outline">View Programs</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="testimonial-card">
+        <div class="testimonial-stars">
+          <span class="material-symbols-outlined star">star</span>
+          <span class="material-symbols-outlined star">star</span>
+          <span class="material-symbols-outlined star">star</span>
+          <span class="material-symbols-outlined star">star</span>
+          <span class="material-symbols-outlined star">star</span>
+        </div>
+        <p class="testimonial-text">"Dropped 12 lbs in 6 weeks. The programming is brutal but it works. Best decision I've made for my fitness."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">M</div>
+          <div>
+            <strong>Marcus T.</strong>
+            <span>34, lost 12 lbs in 6 weeks</span>
+          </div>
+        </div>
+        <div class="testimonial-divider"></div>
+        <div class="testimonial-stats">
+          <div class="t-stat">
+            <span class="t-stat-value">340+</span>
+            <span class="t-stat-label">Active Athletes</span>
+          </div>
+          <div class="t-stat">
+            <span class="t-stat-value">4.9</span>
+            <span class="t-stat-label">Avg Rating</span>
+          </div>
+          <div class="t-stat">
+            <span class="t-stat-value">12k</span>
+            <span class="t-stat-label">Workouts Logged</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Features -->
+  <section id="features" class="section-pad container">
+    <div class="section-header">
+      <div class="overline">01 // Core Programs</div>
+      <h2 class="headline-lg">Strength. Conditioning.<br/><span class="text-ember">Recovery.</span></h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="material-symbols-outlined icon">fitness_center</span>
+        <h3>Strength</h3>
+        <p>Progressive overload cycles tracked and adjusted by your coach. Compound lifts, accessory work, and periodization built for raw output.</p>
+      </div>
+      <div class="feature-card">
+        <span class="material-symbols-outlined icon">monitoring</span>
+        <h3>Conditioning</h3>
+        <p>Metabolic conditioning that scales to your level. From EMOMs to HIIT — every session tracked and optimized for your goals.</p>
+      </div>
+      <div class="feature-card">
+        <span class="material-symbols-outlined icon">self_improvement</span>
+        <h3>Recovery</h3>
+        <p>Recovery isn't rest — it's training. Mobility protocols, sleep tracking, and recovery management for continuous progress.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="section-pad container">
+    <div class="section-header">
+      <div class="overline">02 // The Process</div>
+      <h2 class="headline-lg">Three Steps to<br/><span class="text-ember">Your Best Self</span></h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <h3>Create Profile</h3>
+        <p>Share your stats, goals, and experience. Your coach builds a program tailored to you.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <h3>Get Your Program</h3>
+        <p>Receive a custom training protocol with expert guidance and real-time adjustments.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <h3>Track Results</h3>
+        <p>Follow your program, log every rep, and watch the numbers climb. Progress you can see.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section container">
+    <h2 class="headline-lg">Ready to <span class="text-ember">Start?</span></h2>
+    <p>One free session. No commitment. Just expert coaching and real results.</p>
+    <a href="{{ url_for('register') }}" class="btn btn-ember">Book Your Free Session</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-logo">FitGenie</div>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Support</a>
+    </div>
+    <div class="footer-copy">&copy; 2024 FitGenie.</div>
+  </footer>
+</body>
+</html>

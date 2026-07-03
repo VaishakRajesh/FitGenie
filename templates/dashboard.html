@@ -1,419 +1,391 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitGenie AI - Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitGenie — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- ============================================================
-    SIDEBAR NAVIGATION
-    ============================================================ -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <span class="logo-icon">💪</span>
-                <h2>FitGenie AI</h2>
-            </div>
-            <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">✕</button>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="material-symbols-outlined logo-icon">fitness_center</span>
+        <h2>FitGenie</h2>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-section-title">Main</span>
+        <a href="#" class="nav-item active" onclick="showSection('dashboard')">
+          <span class="material-symbols-outlined nav-icon">dashboard</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showSection('profile')">
+          <span class="material-symbols-outlined nav-icon">person</span>
+          <span>My Profile</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showSection('bmi')">
+          <span class="material-symbols-outlined nav-icon">monitoring</span>
+          <span>BMI Calculator</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-section-title">AI Assistant</span>
+        <a href="#" class="nav-item" onclick="showSection('chat')">
+          <span class="material-symbols-outlined nav-icon">psychiatry</span>
+          <span>AI Chat</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showSection('history')">
+          <span class="material-symbols-outlined nav-icon">history</span>
+          <span>Chat History</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-section-title">Documents</span>
+        <a href="#" class="nav-item" onclick="showSection('documents')">
+          <span class="material-symbols-outlined nav-icon">upload_file</span>
+          <span>Upload Documents</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">{{ user.name[0] | upper }}</div>
+        <div class="user-details">
+          <span class="user-name">{{ user.name }}</span>
+          <span class="user-email">{{ user.email }}</span>
+        </div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn-logout" onclick="return confirm('Are you sure you want to logout?')">
+        <span class="material-symbols-outlined" style="font-size:18px;">logout</span> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content" id="mainContent">
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <h1 id="pageTitle">Dashboard</h1>
+      <span class="current-date" id="currentDate"></span>
+    </header>
+
+    <div class="content-area">
+      <!-- Section: Dashboard -->
+      <section id="section-dashboard" class="page-section active">
+        <div class="welcome-card">
+          <div class="welcome-text">
+            <h2>Welcome, {{ user.name }}!</h2>
+            <p>Ready to crush your fitness goals today?</p>
+          </div>
+          <div class="welcome-avatar">{{ user.name[0] | upper }}</div>
         </div>
 
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <span class="nav-section-title">Main</span>
-                <a href="#" class="nav-item active" onclick="showSection('dashboard')">
-                    <span class="nav-icon">📊</span>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#" class="nav-item" onclick="showSection('profile')">
-                    <span class="nav-icon">👤</span>
-                    <span>My Profile</span>
-                </a>
-                <a href="#" class="nav-item" onclick="showSection('bmi')">
-                    <span class="nav-icon">📏</span>
-                    <span>BMI Calculator</span>
-                </a>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon {{ 'stat-normal' if bmi_category == 'Normal' else 'stat-warning' if bmi_category == 'Overweight' else 'stat-danger' }}">
+              <span class="material-symbols-outlined">monitoring</span>
             </div>
+            <div class="stat-info">
+              <span class="stat-label">BMI</span>
+              <span class="stat-value">{{ bmi if bmi else '--' }}</span>
+              <span class="stat-desc">{{ bmi_category if bmi_category else 'Set your profile' }}</span>
+            </div>
+          </div>
 
-            <div class="nav-section">
-                <span class="nav-section-title">AI Assistant</span>
-                <a href="#" class="nav-item" onclick="showSection('chat')">
-                    <span class="nav-icon">🤖</span>
-                    <span>AI Chat</span>
-                </a>
-                <a href="#" class="nav-item" onclick="showSection('history')">
-                    <span class="nav-icon">📜</span>
-                    <span>Chat History</span>
-                </a>
+          <div class="stat-card">
+            <div class="stat-icon stat-primary">
+              <span class="material-symbols-outlined">flag</span>
             </div>
+            <div class="stat-info">
+              <span class="stat-label">Goal</span>
+              <span class="stat-value">{{ profile.goal if profile and profile.goal else 'Not set' }}</span>
+              <span class="stat-desc">{{ profile.fitness_level if profile and profile.fitness_level else 'Update profile' }}</span>
+            </div>
+          </div>
 
-            <div class="nav-section">
-                <span class="nav-section-title">Documents</span>
-                <a href="#" class="nav-item" onclick="showSection('documents')">
-                    <span class="nav-icon">📄</span>
-                    <span>Upload Documents</span>
-                </a>
+          <div class="stat-card">
+            <div class="stat-icon stat-info">
+              <span class="material-symbols-outlined">scale</span>
             </div>
-        </nav>
+            <div class="stat-info">
+              <span class="stat-label">Body Stats</span>
+              <span class="stat-value">{{ profile.weight if profile and profile.weight else '--' }} kg</span>
+              <span class="stat-desc">{{ profile.height if profile and profile.height else '--' }} cm</span>
+            </div>
+          </div>
 
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar">{{ user.name[0] | upper }}</div>
-                <div class="user-details">
-                    <span class="user-name">{{ user.name }}</span>
-                    <span class="user-email">{{ user.email }}</span>
-                </div>
+          <div class="stat-card">
+            <div class="stat-icon stat-success">
+              <span class="material-symbols-outlined">chat</span>
             </div>
-            <a href="{{ url_for('logout') }}" class="btn btn-logout" onclick="return confirm('Are you sure you want to logout?')">
-                <span>🚪</span> Logout
-            </a>
+            <div class="stat-info">
+              <span class="stat-label">Total Chats</span>
+              <span class="stat-value">{{ recent_chats | length }}</span>
+              <span class="stat-desc">Recent conversations</span>
+            </div>
+          </div>
         </div>
-    </aside>
 
-    <!-- ============================================================
-    MAIN CONTENT AREA
-    ============================================================ -->
-    <main class="main-content" id="mainContent">
-        <header class="topbar">
-            <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
-            <h1 id="pageTitle">Dashboard</h1>
-            <div class="topbar-actions">
-                <span class="current-date" id="currentDate"></span>
-            </div>
-        </header>
-
-        <div class="content-area">
-
-            <!-- ============================================================
-            SECTION: DASHBOARD (Home)
-            ============================================================ -->
-            <section id="section-dashboard" class="page-section active">
-                <div class="welcome-card">
-                    <div class="welcome-text">
-                        <h2>Welcome, {{ user.name }}! 👋</h2>
-                        <p>Ready to crush your fitness goals today?</p>
-                    </div>
-                    <div class="welcome-avatar">{{ user.name[0] | upper }}</div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Recent Conversations</h3>
+            <button class="btn btn-outline btn-sm" onclick="showSection('history')">View All</button>
+          </div>
+          <div class="card-body">
+            {% if recent_chats %}
+              {% for chat in recent_chats %}
+              <div class="chat-preview">
+                <div class="chat-preview-q">
+                  <span class="material-symbols-outlined chat-icon">person</span>
+                  <p>{{ chat.question }}</p>
                 </div>
-
-                <div class="stats-grid">
-                    <!-- BMI Card -->
-                    <div class="stat-card">
-                        <div class="stat-icon {{ 'stat-normal' if bmi_category == 'Normal' else 'stat-warning' if bmi_category == 'Overweight' else 'stat-danger' }}">
-                            📏
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-label">BMI</span>
-                            <span class="stat-value">{{ bmi if bmi else '--' }}</span>
-                            <span class="stat-desc">{{ bmi_category if bmi_category else 'Set your profile' }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Goal Card -->
-                    <div class="stat-card">
-                        <div class="stat-icon stat-primary">🎯</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Goal</span>
-                            <span class="stat-value">{{ profile.goal if profile and profile.goal else 'Not set' }}</span>
-                            <span class="stat-desc">{{ profile.fitness_level if profile and profile.fitness_level else 'Update profile' }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Stats Card -->
-                    <div class="stat-card">
-                        <div class="stat-icon stat-info">📊</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Body Stats</span>
-                            <span class="stat-value">{{ profile.weight if profile and profile.weight else '--' }} kg</span>
-                            <span class="stat-desc">{{ profile.height if profile and profile.height else '--' }} cm</span>
-                        </div>
-                    </div>
-
-                    <!-- Chats Card -->
-                    <div class="stat-card">
-                        <div class="stat-icon stat-success">💬</div>
-                        <div class="stat-info">
-                            <span class="stat-label">Total Chats</span>
-                            <span class="stat-value">{{ recent_chats | length }}</span>
-                            <span class="stat-desc">Recent conversations</span>
-                        </div>
-                    </div>
+                <div class="chat-preview-a">
+                  <span class="material-symbols-outlined chat-icon">psychiatry</span>
+                  <p>{{ chat.answer[:150] }}{% if chat.answer|length > 150 %}...{% endif %}</p>
                 </div>
-
-                <!-- Recent Chats -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Recent Conversations</h3>
-                        <button class="btn btn-sm btn-outline" onclick="showSection('history')">View All</button>
-                    </div>
-                    <div class="card-body">
-                        {% if recent_chats %}
-                            {% for chat in recent_chats %}
-                            <div class="chat-preview">
-                                <div class="chat-preview-q">
-                                    <span class="chat-icon">🙋</span>
-                                    <p>{{ chat.question }}</p>
-                                </div>
-                                <div class="chat-preview-a">
-                                    <span class="chat-icon">🤖</span>
-                                    <p>{{ chat.answer[:150] }}{% if chat.answer|length > 150 %}...{% endif %}</p>
-                                </div>
-                                <span class="chat-time">{{ chat.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="empty-state">
-                                <span class="empty-icon">💬</span>
-                                <p>No conversations yet. Start chatting with FitGenie AI!</p>
-                                <button class="btn btn-primary" onclick="showSection('chat')">Start Chatting</button>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </section>
-
-            <!-- ============================================================
-            SECTION: PROFILE
-            ============================================================ -->
-            <section id="section-profile" class="page-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Your Fitness Profile</h3>
-                        <p>Update your details for personalized recommendations</p>
-                    </div>
-                    <div class="card-body">
-                        <form id="profileForm" class="profile-form">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="age">Age</label>
-                                    <input type="number" id="age" name="age" min="1" max="150"
-                                        value="{{ profile.age if profile and profile.age else '' }}"
-                                        placeholder="e.g. 25">
-                                </div>
-                                <div class="form-group">
-                                    <label for="gender">Gender</label>
-                                    <select id="gender" name="gender">
-                                        <option value="">Select gender</option>
-                                        <option value="Male" {{ 'selected' if profile and profile.gender == 'Male' else '' }}>Male</option>
-                                        <option value="Female" {{ 'selected' if profile and profile.gender == 'Female' else '' }}>Female</option>
-                                        <option value="Other" {{ 'selected' if profile and profile.gender == 'Other' else '' }}>Other</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="height">Height (cm)</label>
-                                    <input type="number" id="height" name="height" min="1" step="0.1"
-                                        value="{{ profile.height if profile and profile.height else '' }}"
-                                        placeholder="e.g. 175">
-                                </div>
-                                <div class="form-group">
-                                    <label for="weight">Weight (kg)</label>
-                                    <input type="number" id="weight" name="weight" min="1" step="0.1"
-                                        value="{{ profile.weight if profile and profile.weight else '' }}"
-                                        placeholder="e.g. 70">
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="goal">Fitness Goal</label>
-                                <select id="goal" name="goal">
-                                    <option value="">Select your goal</option>
-                                    <option value="Lose Weight" {{ 'selected' if profile and profile.goal == 'Lose Weight' else '' }}>Lose Weight</option>
-                                    <option value="Build Muscle" {{ 'selected' if profile and profile.goal == 'Build Muscle' else '' }}>Build Muscle</option>
-                                    <option value="Maintain Fitness" {{ 'selected' if profile and profile.goal == 'Maintain Fitness' else '' }}>Maintain Fitness</option>
-                                    <option value="Improve Endurance" {{ 'selected' if profile and profile.goal == 'Improve Endurance' else '' }}>Improve Endurance</option>
-                                    <option value="General Health" {{ 'selected' if profile and profile.goal == 'General Health' else '' }}>General Health</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="fitness_level">Fitness Level</label>
-                                <select id="fitness_level" name="fitness_level">
-                                    <option value="">Select your level</option>
-                                    <option value="Beginner" {{ 'selected' if profile and profile.fitness_level == 'Beginner' else '' }}>Beginner</option>
-                                    <option value="Intermediate" {{ 'selected' if profile and profile.fitness_level == 'Intermediate' else '' }}>Intermediate</option>
-                                    <option value="Advanced" {{ 'selected' if profile and profile.fitness_level == 'Advanced' else '' }}>Advanced</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="medical_condition">Medical Conditions (optional)</label>
-                                <textarea id="medical_condition" name="medical_condition" rows="2"
-                                    placeholder="e.g. Diabetes, High BP, Asthma - or leave blank">{{ profile.medical_condition if profile and profile.medical_condition else '' }}</textarea>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">Save Profile</button>
-                        </form>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ============================================================
-            SECTION: BMI CALCULATOR
-            ============================================================ -->
-            <section id="section-bmi" class="page-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>BMI Calculator</h3>
-                        <p>Calculate your Body Mass Index and get health advice</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="bmi-calculator">
-                            <div class="bmi-inputs">
-                                <div class="form-group">
-                                    <label for="bmiWeight">Weight (kg)</label>
-                                    <input type="number" id="bmiWeight" placeholder="e.g. 70" step="0.1" min="1"
-                                        value="{{ profile.weight if profile and profile.weight else '' }}">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bmiHeight">Height (cm)</label>
-                                    <input type="number" id="bmiHeight" placeholder="e.g. 175" step="0.1" min="1"
-                                        value="{{ profile.height if profile and profile.height else '' }}">
-                                </div>
-                                <button class="btn btn-primary" onclick="calculateBMI()">Calculate BMI</button>
-                            </div>
-                            <div class="bmi-result" id="bmiResult" style="display: none;">
-                                <div class="bmi-display">
-                                    <span class="bmi-number" id="bmiValue">--</span>
-                                    <span class="bmi-label">Your BMI</span>
-                                </div>
-                                <div class="bmi-details">
-                                    <div class="bmi-category" id="bmiCategory">--</div>
-                                    <div class="bmi-advice" id="bmiAdvice">--</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ============================================================
-            SECTION: AI CHAT
-            ============================================================ -->
-            <section id="section-chat" class="page-section">
-                <div class="card chat-card">
-                    <div class="card-header">
-                        <h3>🤖 Chat with FitGenie AI</h3>
-                        <p>Ask me anything about fitness, nutrition, workouts, or health</p>
-                    </div>
-                    <div class="chat-container">
-                        <!-- Chat Messages -->
-                        <div class="chat-messages" id="chatMessages">
-                            <div class="message-bot">
-                                <div class="message-avatar">🤖</div>
-                                <div class="message-content">
-                                    <p>Hello {{ user.name }}! 👋 I'm <strong>FitGenie AI</strong>, your personal fitness assistant.</p>
-                                    <p>I can help you with:</p>
-                                    <ul>
-                                        <li>🏋️ Creating personalized workout plans</li>
-                                        <li>🥗 Suggesting diet and nutrition plans</li>
-                                        <li>💪 Answering fitness questions</li>
-                                        <li>📊 Tracking your progress</li>
-                                    </ul>
-                                    <p>What would you like to know today?</p>
-                                    <span class="message-time">Just now</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Chat Suggestions -->
-                        <div class="chat-suggestions" id="chatSuggestions">
-                            <button class="suggestion-chip" onclick="sendSuggestion('Create a beginner workout plan')">🏋️ Beginner workout</button>
-                            <button class="suggestion-chip" onclick="sendSuggestion('Suggest a healthy breakfast for weight loss')">🥗 Weight loss meal</button>
-                            <button class="suggestion-chip" onclick="sendSuggestion('How to build muscle fast?')">💪 Build muscle</button>
-                            <button class="suggestion-chip" onclick="sendSuggestion('What foods are high in protein?')">🥩 High protein foods</button>
-                            <button class="suggestion-chip" onclick="sendSuggestion('How much water should I drink daily?')">💧 Hydration</button>
-                        </div>
-
-                        <!-- Chat Input -->
-                        <div class="chat-input-area">
-                            <div class="chat-input-wrapper">
-                                <textarea
-                                    id="chatInput"
-                                    class="chat-input"
-                                    placeholder="Ask about workouts, diet, exercises..."
-                                    rows="1"
-                                    oninput="autoResize(this)"
-                                    onkeydown="handleKeyPress(event)"
-                                ></textarea>
-                                <button class="btn btn-send" onclick="sendMessage()" id="sendBtn">
-                                    ➤
-                                </button>
-                            </div>
-                            <div class="chat-status" id="chatStatus"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ============================================================
-            SECTION: CHAT HISTORY
-            ============================================================ -->
-            <section id="section-history" class="page-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>📜 Chat History</h3>
-                        <div class="card-actions">
-                            <button class="btn btn-sm btn-danger" onclick="clearHistory()">Clear All</button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="historyList" class="history-list">
-                            <div class="empty-state">
-                                <span class="empty-icon">📜</span>
-                                <p>Loading chat history...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ============================================================
-            SECTION: DOCUMENTS UPLOAD
-            ============================================================ -->
-            <section id="section-documents" class="page-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>📄 Upload Fitness Documents</h3>
-                        <p>Upload PDF files to enhance AI knowledge with RAG</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="upload-area" id="uploadArea">
-                            <div class="upload-icon">📁</div>
-                            <h4>Drag & drop files here</h4>
-                            <p>or</p>
-                            <label class="btn btn-primary upload-btn">
-                                Browse Files
-                                <input type="file" id="fileInput" accept=".pdf,.txt" hidden onchange="uploadDocument(this)">
-                            </label>
-                            <p class="upload-hint">Supported: PDF, TXT (max 10MB each)</p>
-                        </div>
-                        <div id="uploadStatus" class="upload-status"></div>
-                    </div>
-                </div>
-            </section>
-
+                <span class="chat-time">{{ chat.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state">
+                <span class="material-symbols-outlined empty-icon">chat</span>
+                <p>No conversations yet. Start chatting with FitGenie AI!</p>
+                <button class="btn btn-ember" onclick="showSection('chat')">Start Chatting</button>
+              </div>
+            {% endif %}
+          </div>
         </div>
-    </main>
+      </section>
 
-    <!-- ============================================================
-    TOAST NOTIFICATION
-    ============================================================ -->
-    <div class="toast-container" id="toastContainer"></div>
+      <!-- Section: Profile -->
+      <section id="section-profile" class="page-section">
+        <div class="card">
+          <div class="card-header">
+            <h3>Your Fitness Profile</h3>
+            <p>Update your details for personalized recommendations</p>
+          </div>
+          <div class="card-body">
+            <form id="profileForm" class="profile-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="age">Age</label>
+                  <input type="number" id="age" name="age" min="1" max="150"
+                    value="{{ profile.age if profile and profile.age else '' }}"
+                    placeholder="e.g. 25">
+                </div>
+                <div class="form-group">
+                  <label for="gender">Gender</label>
+                  <select id="gender" name="gender">
+                    <option value="">Select gender</option>
+                    <option value="Male" {{ 'selected' if profile and profile.gender == 'Male' else '' }}>Male</option>
+                    <option value="Female" {{ 'selected' if profile and profile.gender == 'Female' else '' }}>Female</option>
+                    <option value="Other" {{ 'selected' if profile and profile.gender == 'Other' else '' }}>Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="height">Height (cm)</label>
+                  <input type="number" id="height" name="height" min="1" step="0.1"
+                    value="{{ profile.height if profile and profile.height else '' }}"
+                    placeholder="e.g. 175">
+                </div>
+                <div class="form-group">
+                  <label for="weight">Weight (kg)</label>
+                  <input type="number" id="weight" name="weight" min="1" step="0.1"
+                    value="{{ profile.weight if profile and profile.weight else '' }}"
+                    placeholder="e.g. 70">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="goal">Fitness Goal</label>
+                <select id="goal" name="goal">
+                  <option value="">Select your goal</option>
+                  <option value="Lose Weight" {{ 'selected' if profile and profile.goal == 'Lose Weight' else '' }}>Lose Weight</option>
+                  <option value="Build Muscle" {{ 'selected' if profile and profile.goal == 'Build Muscle' else '' }}>Build Muscle</option>
+                  <option value="Maintain Fitness" {{ 'selected' if profile and profile.goal == 'Maintain Fitness' else '' }}>Maintain Fitness</option>
+                  <option value="Improve Endurance" {{ 'selected' if profile and profile.goal == 'Improve Endurance' else '' }}>Improve Endurance</option>
+                  <option value="General Health" {{ 'selected' if profile and profile.goal == 'General Health' else '' }}>General Health</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="fitness_level">Fitness Level</label>
+                <select id="fitness_level" name="fitness_level">
+                  <option value="">Select your level</option>
+                  <option value="Beginner" {{ 'selected' if profile and profile.fitness_level == 'Beginner' else '' }}>Beginner</option>
+                  <option value="Intermediate" {{ 'selected' if profile and profile.fitness_level == 'Intermediate' else '' }}>Intermediate</option>
+                  <option value="Advanced" {{ 'selected' if profile and profile.fitness_level == 'Advanced' else '' }}>Advanced</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="medical_condition">Medical Conditions (optional)</label>
+                <textarea id="medical_condition" name="medical_condition" rows="2"
+                  placeholder="e.g. Diabetes, High BP, Asthma - or leave blank">{{ profile.medical_condition if profile and profile.medical_condition else '' }}</textarea>
+              </div>
+              <button type="submit" class="btn btn-ember">Save Profile</button>
+            </form>
+          </div>
+        </div>
+      </section>
 
-    <!-- ============================================================
-    SCRIPTS
-    ============================================================ -->
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
-    <script>
-        // Set current date in header
-        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-    </script>
+      <!-- Section: BMI -->
+      <section id="section-bmi" class="page-section">
+        <div class="card">
+          <div class="card-header">
+            <h3>BMI Calculator</h3>
+            <p>Calculate your Body Mass Index and get health advice</p>
+          </div>
+          <div class="card-body">
+            <div class="bmi-calculator">
+              <div class="bmi-inputs">
+                <div class="form-group">
+                  <label for="bmiWeight">Weight (kg)</label>
+                  <input type="number" id="bmiWeight" placeholder="e.g. 70" step="0.1" min="1"
+                    value="{{ profile.weight if profile and profile.weight else '' }}">
+                </div>
+                <div class="form-group">
+                  <label for="bmiHeight">Height (cm)</label>
+                  <input type="number" id="bmiHeight" placeholder="e.g. 175" step="0.1" min="1"
+                    value="{{ profile.height if profile and profile.height else '' }}">
+                </div>
+                <button class="btn btn-ember" onclick="calculateBMI()">Calculate BMI</button>
+              </div>
+              <div class="bmi-result" id="bmiResult" style="display: none;">
+                <div class="bmi-display">
+                  <span class="bmi-number" id="bmiValue">--</span>
+                  <span class="bmi-label">Your BMI</span>
+                </div>
+                <div class="bmi-details">
+                  <div class="bmi-category" id="bmiCategory">--</div>
+                  <div class="bmi-advice" id="bmiAdvice">--</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Chat -->
+      <section id="section-chat" class="page-section">
+        <div class="card chat-card">
+          <div class="card-header">
+            <h3>Chat with FitGenie AI</h3>
+            <p>Ask anything about workouts, diet, exercises, or recovery</p>
+          </div>
+          <div class="card-body">
+            <div class="chat-container">
+              <div class="chat-messages" id="chatMessages">
+                <div class="message-bot">
+                  <div class="message-avatar">
+                    <span class="material-symbols-outlined" style="font-size:18px;">psychiatry</span>
+                  </div>
+                  <div class="message-content">
+                    <p>Hello {{ user.name }}! I'm <strong>FitGenie AI</strong>, your personal fitness assistant.</p>
+                    <p>I can help you with:</p>
+                    <ul>
+                      <li>Creating personalized workout plans</li>
+                      <li>Suggesting diet and nutrition plans</li>
+                      <li>Answering fitness questions</li>
+                      <li>Tracking your progress</li>
+                    </ul>
+                    <p>What would you like to know today?</p>
+                    <span class="message-time">Just now</span>
+                  </div>
+                </div>
+              </div>
+              <div class="chat-suggestions" id="chatSuggestions">
+                <button class="suggestion-chip" onclick="sendSuggestion('Create a beginner workout plan')">Beginner workout</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('Suggest a healthy breakfast for weight loss')">Weight loss meal</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('How to build muscle fast?')">Build muscle</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('What foods are high in protein?')">High protein foods</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('How much water should I drink daily?')">Hydration</button>
+              </div>
+              <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                  <textarea
+                    id="chatInput"
+                    class="chat-input"
+                    placeholder="Ask about workouts, diet, exercises..."
+                    rows="1"
+                    oninput="autoResize(this)"
+                    onkeydown="handleKeyPress(event)"
+                  ></textarea>
+                  <button class="btn-send" onclick="sendMessage()" id="sendBtn">
+                    <span class="material-symbols-outlined">send</span>
+                  </button>
+                </div>
+                <div class="chat-status" id="chatStatus"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Chat History -->
+      <section id="section-history" class="page-section">
+        <div class="card">
+          <div class="card-header">
+            <h3>Chat History</h3>
+            <div class="card-actions">
+              <button class="btn btn-outline btn-sm" onclick="clearHistory()">Clear All</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="historyList" class="history-list">
+              <div class="empty-state">
+                <span class="material-symbols-outlined empty-icon">history</span>
+                <p>Loading chat history...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Documents -->
+      <section id="section-documents" class="page-section">
+        <div class="card">
+          <div class="card-header">
+            <h3>Upload Documents</h3>
+            <p>Upload PDF or TXT files to enhance AI knowledge</p>
+          </div>
+          <div class="card-body">
+            <div class="upload-area" id="uploadArea">
+              <span class="material-symbols-outlined upload-icon">cloud_upload</span>
+              <h4>Drag &amp; drop files here</h4>
+              <p>or</p>
+              <label class="btn btn-ember upload-btn">
+                Browse Files
+                <input type="file" id="fileInput" accept=".pdf,.txt" hidden onchange="uploadDocument(this)">
+              </label>
+              <p class="upload-hint">Supported: PDF, TXT (max 10MB each)</p>
+            </div>
+            <div id="uploadStatus" class="upload-status"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script>
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+  </script>
 </body>
 </html>
