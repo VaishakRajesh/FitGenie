@@ -1,174 +1,254 @@
-# FitGenie AI
 
-> AI-Powered Fitness Assistant built with Flask, LangChain & RAG
 
-FitGenie AI is an intelligent fitness assistant that provides personalized workout plans, nutrition guidance, BMI analysis, and answers fitness-related questions using a Large Language Model (LLM) with Retrieval-Augmented Generation (RAG).
+<p align="center">
+  <img src="Screenshot%202026-07-03%20195401.png" alt="FitGenie AI Dashboard" width="100%">
+</p>
 
-## Tech Stack
+<h1 align="center">🏋️ FitGenie AI</h1>
 
-- **Backend:** Python, Flask
-- **AI:** OpenAI GPT, LangChain
-- **RAG:** ChromaDB, HuggingFace Embeddings
-- **Database:** SQLite with SQLAlchemy
-- **Frontend:** HTML, CSS, JavaScript
+<p align="center">
+  <strong>Forged, Not Found.</strong><br>
+  <em>AI-Powered Fitness Assistant — Personalized Coaching Through Artificial Intelligence</em>
+</p>
 
-## Features
+<p align="center">
+  <a href="https://fitgenie-teaw.onrender.com">
+    <img src="https://img.shields.io/badge/Live-Demo-10b981?style=for-the-badge&logo=render&logoColor=white" alt="Live Demo">
+  </a>
+  <a href="https://github.com/yourusername/FitGenie">
+    <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11">
+  </a>
+  <a href="https://flask.palletsprojects.com/">
+    <img src="https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask 3.0">
+  </a>
+  <a href="https://groq.com">
+    <img src="https://img.shields.io/badge/Groq-Llama%203.3%2070B-f97316?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCAxOGMtNC40MSAwLTgtMy41OS04LThzMy41OS04IDgtOCA4IDMuNTkgOCA4LTMuNTkgOC04IDh6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==" alt="Groq">
+  </a>
+  <a href="https://langchain.com">
+    <img src="https://img.shields.io/badge/LangChain-✓-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangChain">
+  </a>
+</p>
 
-- ✅ User Registration & Login (secure password hashing)
-- ✅ Personalized fitness profiles (age, weight, height, goals)
-- ✅ BMI Calculator with health advice
-- ✅ AI Chat powered by LangChain + OpenAI
-- ✅ RAG (Retrieval-Augmented Generation) from fitness documents
-- ✅ Conversation memory for contextual responses
-- ✅ Chat history with search
-- ✅ Upload custom PDF/TXT documents for knowledge base
-- ✅ Responsive dark-theme UI
-- ✅ Fallback responses (works without API key)
+---
 
-## Installation
+## ✦ Overview
 
-### 1. Clone the repository
+**FitGenie AI** is an intelligent fitness assistant that delivers **real-time, personalized coaching** powered by Large Language Models and Retrieval-Augmented Generation (RAG). Unlike generic fitness apps, FitGenie adapts to your body, goals, experience level, and even medical conditions — then answers any fitness question like a world-class personal trainer.
 
-```bash
-git clone <repository-url>
-cd FitGenie-AI
+> **Live:** [fitgenie-teaw.onrender.com](https://fitgenie-teaw.onrender.com)
+
+---
+
+## ✦ Key Features
+
+| Feature | Description |
+|---------|-------------|
+| 🔐 **Authentication** | Secure registration/login with password hashing & session management |
+| 👤 **Fitness Profile** | Age, height, weight, gender, goals, fitness level, medical conditions |
+| 📊 **BMI Calculator** | Instant calculation with health category & personalized advice |
+| 🤖 **AI Chat** | Context-aware conversations powered by Groq Llama 3.3 70B |
+| 📚 **RAG Engine** | Retrieval-Augmented Generation from uploaded fitness documents |
+| 📁 **Document Upload** | Upload PDF/TXT files to expand the AI's knowledge base |
+| 💬 **Chat History** | Browse, search, and clear past conversations |
+| 🌙 **Dark Theme UI** | Modern, responsive interface with Material Icons |
+
+---
+
+## ✦ Tech Stack
+
+```
+Frontend          Backend            AI & ML               Data & Storage
+─────────────────────────────────────────────────────────────────────────
+HTML5             Python 3.11        Groq Llama 3.3 70B    ChromaDB (Vector)
+CSS3 (Dark)       Flask 3.0          LangChain Core        SQLite (Relational)
+Vanilla JS        Flask-Login        HuggingFace Embed.    SQLAlchemy ORM
+Material Icons    Werkzeug           RAG Pipeline          File System
 ```
 
-### 2. Create virtual environment
+### AI Architecture (3-Tier Fallback)
+
+```
+   User Question
+        │
+   ┌────▼────┐
+   │  RAG    │  Tier 1 — Vector store + LLM (best answers)
+   │ Pipeline│
+   └────┬────┘
+        │ (if unavailable)
+   ┌────▼────┐
+   │  LLM    │  Tier 2 — Groq Llama 3.3 only (no documents)
+   │  Only   │
+   └────┬────┘
+        │ (if no API key)
+   ┌────▼────────┐
+   │  Rule-Based  │  Tier 3 — Keyword-matched fallback (offline mode)
+   │  Fallback    │
+   └─────────────┘
+```
+
+---
+
+## ✦ Quick Start
+
+### Prerequisites
+- Python 3.11+
+- Groq API key (free at [console.groq.com](https://console.groq.com/keys))
+
+### Setup
 
 ```bash
+# 1. Clone & enter
+git clone https://github.com/yourusername/FitGenie.git
+cd FitGenie
+
+# 2. Virtual environment
 python -m venv venv
-```
 
-**Windows:**
-```bash
+# Windows
 venv\Scripts\activate
-```
-
-**Linux/Mac:**
-```bash
+# Linux/Mac
 source venv/bin/activate
-```
 
-### 3. Install dependencies
-
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-### 4. Configure environment variables
+# 4. Environment variables
+# Create .env with:
+GROQ_API_KEY=gsk_your_key_here
+SECRET_KEY=your_random_secret
+DATABASE_URL=sqlite:///database.db
 
-Copy `.env` and add your OpenAI API key:
-
-```env
-OPENAI_API_KEY=your-openai-api-key-here
-SECRET_KEY=your-random-secret-key
-```
-
-> **Note:** Without an API key, the app runs in fallback mode with rule-based responses.
-
-### 5. Add fitness documents (optional)
-
-Place PDF or TXT files in the `documents/` folder:
-- `fitness.pdf` or `fitness.txt`
-- `nutrition.pdf` or `nutrition.txt`
-- `exercises.pdf` or `exercises.txt`
-
-Three sample text files are already included to get started.
-
-### 6. Run the application
-
-```bash
+# 5. Run
 python app.py
 ```
 
-Visit **http://127.0.0.1:5000** in your browser.
+Visit **http://127.0.0.1:5000** 🚀
 
-## Usage
+---
 
-1. **Register** a new account at `/register`
-2. **Login** at `/login`
-3. **Update your profile** - Age, height, weight, fitness goals
-4. **Calculate BMI** - Get instant health category and advice
-5. **Chat with AI** - Ask fitness questions, get workout plans, diet advice
-6. **Upload documents** - Enhance AI knowledge with custom PDFs
+## ✦ Usage
 
-### Example questions:
-
-- "Create a beginner workout plan"
-- "Suggest a healthy breakfast for weight loss"
-- "How to build muscle fast?"
-- "What foods are high in protein?"
-- "How much water should I drink daily?"
-
-## Project Structure
+### User Journey
 
 ```
-FitGenie-AI/
-├── app.py                 # Flask application with all routes and RAG pipeline
-├── database.db            # SQLite database (auto-created)
-├── requirements.txt       # Python dependencies
-├── .env                   # Environment variables (API keys)
-├── templates/
-│   ├── login.html         # Login page
-│   ├── register.html      # Registration page
-│   ├── dashboard.html     # Main dashboard with all features
-│   └── profile.html       # Profile settings page
-├── static/
-│   ├── style.css          # Complete stylesheet (dark theme)
-│   └── app.js             # Frontend JavaScript logic
-├── documents/             # Place PDF/TXT files here for RAG
-│   ├── fitness.txt
-│   ├── nutrition.txt
-│   └── exercises.txt
-├── vectorstore/           # ChromaDB persists here (auto-created)
-└── README.md
+Register → Login → Set Profile → Dashboard → Chat with AI → Achieve Goals
 ```
 
-## How RAG Works
+### Example Questions
 
-1. Documents are loaded from `documents/` folder
-2. Text is split into 500-character chunks (100 overlap)
-3. Chunks are embedded using HuggingFace embeddings
-4. Embedded vectors stored in ChromaDB (persisted on disk)
-5. User question retrieves top 3 relevant chunks
-6. LangChain RetrievalQA passes chunks + question to OpenAI GPT
-7. LLM generates answer using retrieved context + conversation memory
+| Category | Questions |
+|----------|-----------|
+| 💪 **Workouts** | "Create a beginner workout plan" / "How to build muscle fast?" |
+| 🥗 **Nutrition** | "Suggest a healthy breakfast for weight loss" / "What foods are high in protein?" |
+| 💧 **Hydration** | "How much water should I drink daily?" |
+| 📊 **BMI** | "What is my BMI and what does it mean?" |
 
-## Without API Key (Fallback Mode)
+### RAG Enhancement
 
-If no `OPENAI_API_KEY` is set, the app operates in offline mode:
-- All authentication and profile features work
-- BMI calculator works
-- Chat responds with rule-based answers based on keywords
-- Document upload still works but RAG is not active
+Upload your own PDF or TXT files (fitness guides, nutrition research, exercise manuals) and FitGenie will index them into ChromaDB — making the AI **smarter with your specific knowledge base**.
 
-## Development
+---
 
-Run in debug mode:
+## ✦ Deployment
+
+### Render (recommended)
 
 ```bash
-python app.py
+# runtime.txt
+python-3.11.7
+
+# render-build.sh (auto-runs on deploy)
+pip install -r requirements.txt
+python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 ```
 
-The server will reload automatically on code changes.
-
-## Production Deployment
-
-Use a production WSGI server:
+### Production WSGI
 
 ```bash
 pip install waitress
 waitress-serve --port=5000 app:app
 ```
 
-## Future Enhancements
+---
 
-- Voice Assistant integration
-- Exercise image/video detection
-- Progress graphs and charts
-- Calories burned prediction
-- Mobile app (Flutter/React Native)
-- Admin panel for document management
-- AI Trainer avatar
-- PDF fitness report generation
+## ✦ Project Structure
+
+```
+FitGenie/
+├── app.py                 # Flask application (routes, RAG pipeline, AI logic)
+├── requirements.txt       # Python dependencies
+├── runtime.txt            # Python version for Render
+├── render-build.sh        # Render build script
+├── .env                   # Environment variables
+├── database.db            # SQLite database (auto-created)
+├── Screenshot*.png        # App preview image
+│
+├── templates/             # Jinja2 HTML templates
+│   ├── index.html         # Landing page ("Forged, Not Found")
+│   ├── login.html         # Login page
+│   ├── register.html      # Registration page
+│   ├── dashboard.html     # Main SPA dashboard
+│   └── profile.html       # Profile settings
+│
+├── static/
+│   ├── style.css          # Complete dark-theme stylesheet
+│   └── app.js             # Frontend JavaScript (SPA logic, chat, BMI, uploads)
+│
+├── documents/             # PDF/TXT files for RAG ingestion
+├── vectorstore/           # ChromaDB persistent vector index
+│
+├── DEPLOY.md              # Deployment guide
+└── README.md              # You are here
+```
+
+---
+
+## ✦ How RAG Works
+
+```
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│  Load PDFs   │ →  │  Split into  │ →  │  Embed &     │ →  │  Semantic    │
+│  & TXT files │    │  500-char    │    │  Store in    │    │  Search      │
+│              │    │  chunks (100 │    │  ChromaDB    │    │  (top 3      │
+│              │    │  overlap)    │    │              │    │  chunks)     │
+└──────────────┘    └──────────────┘    └──────────────┘    └──────┬───────┘
+                                                                   │
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐           │
+│  Personalized│ ←  │  LLM         │ ←  │  Chunks +    │ ←────────┘
+│  Response    │    │  (Groq)      │    │  Question +  │
+│              │    │              │    │  History     │
+└──────────────┘    └──────────────┘    └──────────────┘
+```
+
+---
+
+## ✦ Offline Mode
+
+No API key? No problem. FitGenie runs in **fallback mode** with rule-based responses:
+- All auth, profile, and BMI features work
+- Chat returns intelligent keyword-matched answers
+- Document upload still operates (RAG activates once an API key is set)
+
+---
+
+## ✦ Roadmap
+
+| Quarter | Feature |
+|---------|---------|
+| ✅ **Current** | AI Chat + RAG + Profile + BMI + Docs |
+| 🔜 **Q3 2025** | Voice Assistant (hands-free coaching) |
+| 🔜 **Q4 2025** | Progress Charts & Analytics (weight/BMI trends) |
+| 🔜 **Q1 2026** | Exercise Video Detection (form correction) |
+| 🔜 **Q2 2026** | Mobile App (Flutter/React Native) |
+| 🔮 **Future** | AI Trainer Avatar, PDF Reports, Calorie Prediction |
+
+---
+
+<p align="center">
+  <strong>FitGenie AI</strong> — <em>Forged, Not Found.</em><br>
+  Built with Flask, LangChain, Groq & ChromaDB
+</p>
+
+<p align="center">
+  <a href="https://fitgenie-teaw.onrender.com">🌐 Live Demo</a>
+</p>
